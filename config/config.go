@@ -183,7 +183,6 @@ func GetSettingConfig() {
 				GlobalConfig.ConfigMap[db_k] = c_v
 			}
 		}
-		utils.WriteLog("a.log", GlobalConfig.ConfigMap)
 	} else {
 		fmt.Println("err", err.Error())
 	}

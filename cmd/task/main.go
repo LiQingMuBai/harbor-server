@@ -2,6 +2,7 @@ package main
 
 import (
 	bootstraptask "cointrade/internal/bootstrap/task"
+	"cointrade/utils"
 	"log"
 	"os"
 )
@@ -9,6 +10,9 @@ import (
 func main() {
 	options, err := bootstraptask.OptionsFromArgs(os.Args[1:])
 	if err != nil {
+		log.Fatal(err)
+	}
+	if err = utils.SetupServiceLogger("task/" + options.Mode); err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("==================================================")

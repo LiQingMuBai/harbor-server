@@ -3,7 +3,6 @@ package modules
 import (
 	"cointrade/http/common"
 	"cointrade/models"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,10 +42,8 @@ func (m *UserModule) Update(r *gin.Context) {
 	uid := r.GetInt("uid")
 	data, ok := r.Get("data")
 	if !ok {
-		fmt.Println("no data exists")
 		return
 	}
-	fmt.Println(data)
 	models.MODEL_USER.Update(uid, data.(map[string]interface{}))
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, "ok")
 }

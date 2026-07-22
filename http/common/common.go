@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"reflect"
 	"runtime/debug"
 	"strings"
@@ -173,8 +172,6 @@ func (m *ModuleBase) GetFloat(r *gin.Context, key string) float64 {
 }
 
 func (m *ModuleBase) LogWrite(r *gin.Engine) {
-	f, _ := os.OpenFile("./www.log", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
-	r.Use(gin.LoggerWithWriter(io.MultiWriter(f, os.Stdout)))
 	formatter := func(param gin.LogFormatterParams) string {
 		return fmt.Sprintf("客户端IP:%s,请求时间:[%s],请求方式:%s,请求地址:%s,http协议版本:%s,请求状态码:%d,响应时间:%s,客户端:%s，错误信息:%s\n",
 			param.ClientIP,
@@ -188,7 +185,14 @@ func (m *ModuleBase) LogWrite(r *gin.Engine) {
 			param.ErrorMessage,
 		)
 	}
-	r.Use(gin.LoggerWithFormatter(formatter))
+	writer := gin.DefaultWriter
+	if file, err := utils.OpenServiceLog("http-access.log"); err == nil {
+		writer = io.MultiWriter(file, gin.DefaultWriter)
+	}
+	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+		Formatter: formatter,
+		Output:    writer,
+	}))
 }
 
 func Recovery() gin.HandlerFunc {
@@ -210,7 +214,7 @@ func Recovery() gin.HandlerFunc {
 				c.Abort()
 				//response.Code, response.Message = configure.ApiInnerResponseError, fmt.Sprintf("Api内部报错，请联系管理员(id=%s", traceId)
 				//log.WithFields(logField).Error(err) // 输出panic 信息
-				utils.WriteFile("/home/gin_panic.log", utils.GetJsonValue(logField))
+				_ = utils.AppendServiceLog("panic.log", utils.GetJsonValue(logField))
 				//dao.ModelClient.RedisClient.HMSet(traceId, redisField) // 上报redis
 				//c.JSON(http.StatusUnauthorized, response)
 				return
@@ -239,9 +243,8 @@ func (h *HttpModules) Run(port int) {
 func CreateHttp() *HttpModules {
 	gin.SetMode(gin.ReleaseMode)
 	rs := new(HttpModules)
-	rs.Handle = gin.Default()
+	rs.Handle = gin.New()
 	ModuleGlobal.LogWrite(rs.Handle)
-
-	rs.Handle.Use(ModuleGlobal.CrossDomain, ModuleGlobal.GetP)
+	rs.Handle.Use(Recovery(), ModuleGlobal.CrossDomain, ModuleGlobal.GetP)
 	return rs
 }

@@ -197,9 +197,7 @@ func (m *CreditLogModel) AddLevelCount(uid int, level int, createtime int, data 
 			condition[k] = v
 		}
 		_, err := config.GlobalDB.InsertData(DB_TABLE_USER_LEVEL_COUNT, condition)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
+		_ = err
 	}
 	one, _ = config.GlobalDB.FetchOne(DB_TABLE_USER_LEVEL_COUNT_SUM, db.DB_PARAMS{"uid": uid, "level": level}, db.DB_FIELDS{"id"}, "limit 0,1")
 	if one != nil {
@@ -210,9 +208,7 @@ func (m *CreditLogModel) AddLevelCount(uid int, level int, createtime int, data 
 			insertData[k] = v
 		}
 		_, err := config.GlobalDB.InsertData(DB_TABLE_USER_LEVEL_COUNT_SUM, insertData)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
+		_ = err
 	}
 
 }

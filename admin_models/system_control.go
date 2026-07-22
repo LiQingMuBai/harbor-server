@@ -134,7 +134,6 @@ func (s *SystemModel) GenerateData(p P) float64 {
 	}
 	controllerOne := config.GlobalMongo.GetOne(models.COIN_CONTROLLER, bson.M{"sn": t.Get("sn").ToString()}, bson.M{})
 	if controllerOne == nil {
-		fmt.Println("控制套件无法找到")
 		return 0
 	}
 	if e, ok := controllerOne["change_price"]; ok {
@@ -151,14 +150,11 @@ func (s *SystemModel) GenerateData(p P) float64 {
 	divDiffTime := (endtime - start) / 10
 	divDiffPrice := utils.GetFloat(fmt.Sprintf("%.4f", diffPrice/10))
 	if now > endtime {
-		fmt.Println("结束控制.............", nowPrice)
 		return 0
 	}
 	nowBlock := math.Ceil(float64((now - start)) / float64(divDiffTime))
 	blockDistPrice := openPrice + nowBlock*divDiffPrice
 	blockTimeDiff := nowBlock*float64(divDiffTime) - float64((now - start))
-	fmt.Println("当前块价", blockDistPrice)
-	fmt.Println("当前行情块", nowBlock)
 	blockDiffPercent := utils.GetFloat(fmt.Sprintf("%.2f", blockTimeDiff/float64(divDiffTime))) * 100
 	if blockDiffPercent > 20 || blockTimeDiff == 0 {
 		rand.Seed(time.Now().UnixNano())
@@ -179,16 +175,13 @@ func (s *SystemModel) GenerateData(p P) float64 {
 			fornum++
 		}
 	} else {
-		fmt.Println("目标价格、、、、")
 		per := (blockDistPrice - nowPrice) / float64(blockTimeDiff)
 		nowPrice = utils.GetFloat(fmt.Sprintf("%.4f", nowPrice+per))
 	}
-	fmt.Println("now_price", nowPrice)
 	controllerOne["change_price"] = nowPrice
 	config.GlobalMongo.FindAndReplace(models.COIN_CONTROLLER, controllerOne, bson.M{"sn": t.Get("sn").ToString()})
 	if nowPrice == distPrice && nowBlock == 10 {
 		startt := now
-		utils.WriteLog("./logs.txt", fmt.Sprintf("%f ====== %s", nowPrice, t.Get("pair").ToString()))
 		for j := 0; j < 15; j++ {
 			startt += 1
 			config.GlobalMongo.FindAndReplace("kline_control", bson.M{"pair": t.Get("pair").ToString(), "timemap": startt, "price": nowPrice}, bson.M{"pair": t.Get("pair").ToString(), "timemap": now})

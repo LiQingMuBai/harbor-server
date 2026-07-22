@@ -218,7 +218,6 @@ func (m *AssetModel) AddAssets(uid int, a *Assets) bool { //给用户添加资�
 		a.Price = 1
 	}
 	if a.Coin == "usdt" {
-		fmt.Println("usdt", a.Num)
 		MODEL_USER.AddCredit(uid, &CreditValue{
 			Credit:          a.Num,
 			UserCoinLogType: COIN_LOG_USER_RECHARGE,

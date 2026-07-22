@@ -103,8 +103,6 @@ func (m *UserModel) UserByMessage(uid int) *AdminResponse {
 					"createtime": item["createtime"],
 				})
 				config.GlobalDB.UpdateData(models.DB_TABLE_SERVICE_MESSAGE, db.DB_PARAMS{"read_state": 1}, db.DB_PARAMS{"uid": uid, "flag": 1})
-			} else {
-				fmt.Println(err.Error())
 			}
 		}
 	}

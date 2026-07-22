@@ -238,7 +238,7 @@ func (m *TradeModel) OpSpot(rq P) *AdminResponse {
 			})
 		}
 		//加入资产
-		b := models.MODEL_ASSETS.AddAssets(deleteinfo.Get("uid").ToInt(), &models.Assets{
+		models.MODEL_ASSETS.AddAssets(deleteinfo.Get("uid").ToInt(), &models.Assets{
 			Coin:          deleteinfo.Get("coin_symbol").ToString(),
 			Pair:          deleteinfo.Get("coinpair").ToString(), //交易对
 			Num:           pdata.Get("num").ToFloat(),            //数量
@@ -248,7 +248,6 @@ func (m *TradeModel) OpSpot(rq P) *AdminResponse {
 			IsTrans:       0,                            //是否可以交易划转
 			OpenTransTime: int(utils.TimeToint64(pdata.Get("days").ToString())),
 		})
-		fmt.Println("加入资产", b, int(utils.TimeToint64(pdata.Get("days").ToString())))
 		update["state"] = 1
 		//update["price"] = pdata.Get("price").ToFloat()
 		//update["num"] = pdata.Get("num").ToFloat()

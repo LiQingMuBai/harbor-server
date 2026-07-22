@@ -4,6 +4,7 @@ import (
 	"cointrade/http/common"
 	"cointrade/models"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"net/rpc"
@@ -17,7 +18,7 @@ func RpcServer(addr string, port int) { //进程内驻守的RPCserver
 	rpc.HandleHTTP()
 	l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", addr, port))
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Printf("rpc listen error: %v", err)
 		panic(err)
 	}
 	http.Serve(l, nil)

@@ -3,7 +3,6 @@ package adminmodules
 import (
 	adminmodels "cointrade/admin_models"
 	"cointrade/http/common"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -45,7 +44,6 @@ func (m *AdminUserModule) Delmsg(r *gin.Context) {
 func (m *AdminUserModule) SendMsg(r *gin.Context) {
 	rq := new(adminmodels.CustomMsg)
 	m.ConvertObject(r, rq)
-	fmt.Println(rq)
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.SendMsg(rq))
 }
 

@@ -322,8 +322,6 @@ func (m *UserModel) SA(sid string) int {
 	if uid, err := config.GlobalRedis.GetValue(HASH_BY_LOGIN_ADMIN, sid); err == nil {
 		re := db.DBValue{Value: uid}
 		return re.ToInt()
-	} else {
-		fmt.Println("err", err, uid)
 	}
 	return 0
 }
@@ -331,7 +329,6 @@ func (m *UserModel) SA(sid string) int {
 func (m *UserModel) SidInfo(sid string) *AdminInfo {
 	uid := m.SA(sid)
 	if uid == 0 {
-		fmt.Println(" uid 为0")
 		return nil
 	}
 	return m.Uinfo(uid)
@@ -340,7 +337,6 @@ func (m *UserModel) SidInfo(sid string) *AdminInfo {
 func (m *UserModel) Uinfo(uid int) *AdminInfo {
 	rs := new(AdminInfo)
 	one, _ := config.GlobalDB.FetchOne(models.DB_TABLE_ADMIN, db.DB_PARAMS{"id": uid}, db.DB_FIELDS{})
-	fmt.Println("one", one)
 	if one == nil {
 		return nil
 	}

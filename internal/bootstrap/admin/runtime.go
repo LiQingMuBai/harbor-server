@@ -9,6 +9,7 @@ import (
 	"cointrade/models"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/rpc"
 )
 
@@ -65,7 +66,7 @@ func rpcClientTask(clients map[int]string) {
 			for port, ip := range clients {
 				client, err := rpc.DialHTTP("tcp", fmt.Sprintf("%s:%d", ip, port))
 				if err != nil {
-					fmt.Println("rpc dial error", err, ip, port)
+					log.Printf("rpc dial error: err=%v ip=%s port=%d", err, ip, port)
 					continue
 				}
 				var replay int

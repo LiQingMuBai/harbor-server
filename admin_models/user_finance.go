@@ -298,7 +298,6 @@ func (m *UserModel) TransferOp(rq P) *AdminResponse {
 	}
 
 	symbol := strings.ToLower(one.Get("coin_symbol").ToString())
-	fmt.Println("symbol", symbol)
 	toPriceInfo := 1.0
 	if symbol != "usdt" && symbol != "usdc" {
 		p := models.MODEL_SYSTEM.GetLastCoinInfo(symbol + "usdt")

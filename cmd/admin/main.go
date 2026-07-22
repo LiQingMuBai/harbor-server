@@ -2,10 +2,14 @@ package main
 
 import (
 	bootstrapadmin "cointrade/internal/bootstrap/admin"
+	"cointrade/utils"
 	"log"
 )
 
 func main() {
+	if err := utils.SetupServiceLogger("admin"); err != nil {
+		log.Fatal(err)
+	}
 	options := bootstrapadmin.OptionsFromEnv()
 	log.Printf("==================================================")
 	log.Printf("START harbor-server admin")
