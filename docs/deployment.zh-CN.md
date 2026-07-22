@@ -1,0 +1,226 @@
+# 部署文档
+
+本文档描述 `harbor-server` 的部署依赖、配置准备、服务启动顺序以及常见发布方式。
+
+## 1. 部署概览
+
+`harbor-server` 当前包含 5 个常驻服务和 4 个工具入口：
+
+- `cmd/api`：用户侧 HTTP API，同时启动内部 RPC 服务
+- `cmd/admin`：后台管理服务，会消费 Redis 队列并调用 API RPC
+- `cmd/task`：后台任务服务，按模式执行
+- `cmd/wss`：WebSocket 推送服务
+- `cmd/cdn`：上传与静态资源服务
+
+建议把它部署为多进程服务，而不是把所有角色塞进同一个进程。
+
+## 2. 环境要求
+
+- Go `1.18+`
+- MySQL
+- MongoDB
+- Redis
+- Linux 或 macOS
+
+## 3. 配置准备
+
+项目当前以 `.env` 作为主配置来源。
+
+1. 复制模板：
+
+```bash
+cp .env.example .env
+```
+
+2. 至少补齐以下配置：
+
+- MySQL：`DB_HOST`、`DB_PORT`、`DB_USER`、`DB_PASS`、`DB_NAME`
+- MongoDB：`MONGO_URI`、`MONGO_DBNAME`
+- Redis：`REDIS_HOST`、`REDIS_PORT`
+- API：`API_PORT`、`API_LOCAL_IP`、`API_RPC_PORT`
+- Admin：`ADMIN_PORT`、`RPC_CLIENTS`
+- WSS：`WSS_PORT`
+- CDN：`CDN_PORT`、`CDN_DOMAIN`
+
+3. 推荐补齐以下外部依赖配置：
+
+- `ETH_RPC_URL`
+- `TRON_GRPC_ADDR`
+- `EXCHANGE_RATE_API_KEY`
+- `WS_ADMIN_PASS`
+- `SMS_API_URL`
+- `SMS_API_ID`
+- `SMS_API_KEY`
+
+## 4. 关键配置项说明
+
+### 基础依赖
+
+- `DB_*`：MySQL 连接配置
+- `MONGO_*`：MongoDB 配置，优先使用 `MONGO_URI`
+- `REDIS_*`：Redis 配置
+
+### 服务配置
+
+- `API_PORT`：用户 API 监听端口，默认 `9001`
+- `API_LOCAL_IP`：API 内部 RPC 绑定地址，默认 `127.0.0.1`
+- `API_RPC_PORT`：API 内部 RPC 端口，默认 `9010`
+- `ADMIN_PORT`：后台服务端口，默认 `8080`
+- `RPC_CLIENTS`：Admin 连接的 RPC 客户端列表，例如 `9010=127.0.0.1,9020=127.0.0.1`
+- `WSS_PORT`：WebSocket 服务端口，默认 `9088`
+- `CDN_PORT`：上传服务端口，默认 `9999`
+- `CDN_DOMAIN`：上传后返回的静态资源前缀域名
+- `TASK_MODE`：任务模式，可选 `data`、`approve`、`task`
+
+### 可选集成
+
+- `ETH_RPC_URL`：Ethereum RPC 节点地址
+- `TRON_GRPC_ADDR`：Tron gRPC 地址，默认 `grpc.trongrid.io:50052`
+- `EXCHANGE_RATE_API_KEY`：汇率接口 Key
+- `WS_ADMIN_PASS`：WebSocket 管理员登录口令
+- `RECOVER_MONGO_URI`：`recover-kline` 工具专用 Mongo URI
+
+## 5. 构建
+
+全量构建：
+
+```bash
+go build ./...
+```
+
+按服务编译：
+
+```bash
+go build -o bin/api ./cmd/api
+go build -o bin/admin ./cmd/admin
+go build -o bin/task ./cmd/task
+go build -o bin/wss ./cmd/wss
+go build -o bin/cdn ./cmd/cdn
+```
+
+## 6. 启动顺序
+
+推荐启动顺序如下：
+
+1. MySQL / MongoDB / Redis
+2. `api`
+3. `admin`
+4. `task`
+5. `wss`
+6. `cdn`
+
+原因：
+
+- `api` 会启动内部 RPC 服务，`admin` 依赖它处理后台广播任务
+- `task`、`wss`、`admin` 都依赖数据库和缓存初始化
+- `cdn` 相对独立，可以最后启动
+
+## 7. 启动命令
+
+### API
+
+```bash
+go run ./cmd/api
+```
+
+### Admin
+
+```bash
+go run ./cmd/admin
+```
+
+### Task
+
+三种模式分别运行：
+
+```bash
+go run ./cmd/task data
+go run ./cmd/task approve
+go run ./cmd/task task
+```
+
+也可以通过环境变量控制：
+
+```bash
+TASK_MODE=task go run ./cmd/task
+```
+
+### WSS
+
+```bash
+go run ./cmd/wss
+```
+
+### CDN
+
+```bash
+go run ./cmd/cdn
+```
+
+## 8. 工具命令
+
+### 初始化 Mongo 行情集合
+
+```bash
+go run ./cmd/tools/mongo-init
+```
+
+### 授权检查辅助脚本
+
+```bash
+go run ./cmd/tools/checkapprove
+```
+
+### 定时演示工具
+
+```bash
+go run ./cmd/tools/lucky
+```
+
+### 恢复 K 线历史
+
+```bash
+go run ./cmd/tools/recover-kline
+```
+
+## 9. 生产部署建议
+
+### 进程管理
+
+建议使用以下方式之一托管进程：
+
+- `systemd`
+- `supervisor`
+- `pm2` 仅作为简单托管层
+- 容器化部署
+
+### 日志
+
+- 标准输出日志建议交给进程管理器采集
+- `http/common` 中仍保留本地文件日志逻辑，生产环境建议统一重定向或收口
+
+### 静态目录
+
+`cdn` 服务默认依赖以下目录：
+
+- `./static`
+- `./pdf`
+- `./whitepaper`
+
+发布时要确保这些目录存在并具备写权限。
+
+### 安全
+
+- 不要提交 `.env`
+- 不要提交 `config/config.json`
+- `WS_ADMIN_PASS` 必须单独配置
+- 生产环境必须替换所有默认地址与示例值
+
+## 10. 发布检查清单
+
+- `.env` 已填写且未提交
+- MySQL / MongoDB / Redis 可连通
+- `API_LOCAL_IP` 与 `RPC_CLIENTS` 配置一致
+- `CDN_DOMAIN` 指向真实外部访问域名
+- `ETH_RPC_URL`、`TRON_GRPC_ADDR`、短信与汇率相关配置已按业务需要补齐
+- `go build ./...` 和 `go test ./...` 已执行

@@ -118,6 +118,12 @@ Run tests:
 go test ./...
 ```
 
+## Additional Docs
+
+- [Deployment Guide](./docs/deployment.zh-CN.md)
+- [API / Service Notes](./docs/services.zh-CN.md)
+- [Refactor Roadmap](./docs/refactor-roadmap.zh-CN.md)
+
 ## Notes
 
 - The repository has been refactored to keep service and tool entrypoints explicit.

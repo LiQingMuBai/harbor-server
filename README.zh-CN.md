@@ -118,6 +118,12 @@ go build ./...
 go test ./...
 ```
 
+## 扩展文档
+
+- [部署文档](./docs/deployment.zh-CN.md)
+- [API / 服务说明](./docs/services.zh-CN.md)
+- [重构路线图](./docs/refactor-roadmap.zh-CN.md)
+
 ## 说明
 
 - 当前仓库已经完成一轮入口层与配置层收口

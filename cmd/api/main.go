@@ -1,7 +1,15 @@
 package main
 
-import bootstrapapi "cointrade/internal/bootstrap/api"
+import (
+	bootstrapapi "cointrade/internal/bootstrap/api"
+	"log"
+)
 
 func main() {
-	bootstrapapi.Run(bootstrapapi.OptionsFromEnv())
+	options := bootstrapapi.OptionsFromEnv()
+	log.Printf("==================================================")
+	log.Printf("START harbor-server api")
+	log.Printf("service=api port=%d rpc_port=%d local_ip=%s", options.ServerPort, options.RPCPort, options.LocalIP)
+	log.Printf("==================================================")
+	bootstrapapi.Run(options)
 }

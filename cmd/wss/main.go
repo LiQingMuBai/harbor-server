@@ -1,7 +1,15 @@
 package main
 
-import bootstrapwss "cointrade/internal/bootstrap/wss"
+import (
+	bootstrapwss "cointrade/internal/bootstrap/wss"
+	"log"
+)
 
 func main() {
-	bootstrapwss.Run(bootstrapwss.OptionsFromEnv())
+	options := bootstrapwss.OptionsFromEnv()
+	log.Printf("==================================================")
+	log.Printf("START harbor-server wss")
+	log.Printf("service=wss port=%d", options.Port)
+	log.Printf("==================================================")
+	bootstrapwss.Run(options)
 }

@@ -11,6 +11,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("==================================================")
+	log.Printf("START harbor-server task")
+	log.Printf("service=task mode=%s", options.Mode)
+	log.Printf("==================================================")
 	if err = bootstraptask.Run(options); err != nil {
 		log.Fatal(err)
 	}
