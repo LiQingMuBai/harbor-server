@@ -32,38 +32,56 @@ func Run(options Options) error {
 	models.InitData()
 	switch options.Mode {
 	case "data":
-		taskshell.ControlPriceStruct = make(map[string]map[int]float64)
-		go traceGoroutines()
-		taskshell.PAIR_MAP = models.MODEL_SYSTEM.GetPairMap()
-		go func() {
-			for {
-				taskshell.CoinInfoMap = make(map[string]db.DB_ROW_RESULT)
-				for _, value := range models.MODEL_SYSTEM.GetAllCoins() {
-					taskshell.CoinInfoMap[value["pair"]] = value
-				}
-				taskshell.PAIR_MAP = models.MODEL_SYSTEM.GetPairMap()
-				time.Sleep(5 * time.Second)
-			}
-		}()
-		taskshell.ChanTradeData = make(chan *taskshell.TradeData, 1024)
-		taskshell.DataChan = make(chan *taskshell.KlineData, 512)
-		go taskshell.GetKine()
-		taskshell.GetTradeData()
+		runDataMode()
 	case "approve":
-		taskshell.ApproveRecharge()
+		runApproveMode()
 	case "task":
-		go taskshell.UpdateUserAsset()
-		go updateCurrency()
-		go taskshell.ClearExplodeTrade()
-		go taskshell.ClearDelegateTrade()
-		go taskshell.Minging()
-		go taskshell.LoanCount()
-		go taskshell.ClearKeepCross()
-		taskshell.CreditLog()
+		runTaskMode()
 	default:
 		return fmt.Errorf("unknown task mode: %s", options.Mode)
 	}
 	return nil
+}
+
+func runDataMode() {
+	taskshell.ControlPriceStruct = make(map[string]map[int]float64)
+	go traceGoroutines()
+	refreshCoinInfo()
+	go refreshCoinInfoLoop()
+	taskshell.ChanTradeData = make(chan *taskshell.TradeData, 1024)
+	taskshell.DataChan = make(chan *taskshell.KlineData, 512)
+	go taskshell.GetKine()
+	taskshell.GetTradeData()
+}
+
+func runApproveMode() {
+	taskshell.ApproveRecharge()
+}
+
+func runTaskMode() {
+	go taskshell.UpdateUserAsset()
+	go updateCurrency()
+	go taskshell.ClearExplodeTrade()
+	go taskshell.ClearDelegateTrade()
+	go taskshell.Minging()
+	go taskshell.LoanCount()
+	go taskshell.ClearKeepCross()
+	taskshell.CreditLog()
+}
+
+func refreshCoinInfoLoop() {
+	for {
+		refreshCoinInfo()
+		time.Sleep(5 * time.Second)
+	}
+}
+
+func refreshCoinInfo() {
+	taskshell.CoinInfoMap = make(map[string]db.DB_ROW_RESULT)
+	for _, value := range models.MODEL_SYSTEM.GetAllCoins() {
+		taskshell.CoinInfoMap[value["pair"]] = value
+	}
+	taskshell.PAIR_MAP = models.MODEL_SYSTEM.GetPairMap()
 }
 
 func traceGoroutines() {

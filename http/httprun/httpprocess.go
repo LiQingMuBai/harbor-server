@@ -2,7 +2,6 @@ package httprun
 
 import (
 	"cointrade/http/common"
-	"cointrade/http/modules"
 	"cointrade/models"
 	"fmt"
 	"net"
@@ -11,14 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
-var module_user modules.UserModule
-var module_trade modules.TradeModule
-var module_mining modules.MingingModule
-var module_assets modules.AssetModule
-var module_message modules.MessageModule
-var module_system modules.SystemModule
-var module_credit modules.CreditModule
 
 func RpcServer(addr string, port int) { //进程内驻守的RPCserver
 	r := new(models.RpcStruct)
@@ -35,26 +26,16 @@ func CreateWss(r *gin.Context) {
 	m := new(WwebsocketWorker)
 	m.WssWorker(r)
 }
-func Execute(server_port int, localip string, rpc_port int) {
 
-	//config.InitGlobal(true)
-	models.InitData() //初始话model层数据
+func StartAPIBackgroundJobs(localIP string, rpcPort int) {
+	go RpcServer(localIP, rpcPort)
+	go models.CheckApprove()
+	go models.GetWalletBalance()
+}
 
-	go RpcServer(localip, rpc_port) //开启RPC服务
-	//adminmodel.InitAdmin()
-	go models.CheckApprove()               //开启授权检测线程
-	go models.GetWalletBalance()           //钱包余额检测
+func CreateAPIHTTPServer() *common.HttpModules {
 	common.ModuleGlobal.EncodeFlag = false //设置加密
-	http := common.CreateHttp()
-	http.LoadModule(&module_user)    //用户相关
-	http.LoadModule(&module_trade)   //交易相关
-	http.LoadModule(&module_assets)  //资产相关
-	http.LoadModule(&module_mining)  //矿机产品相关
-	http.LoadModule(&module_message) //私人消息相关
-	http.LoadModule(&module_system)  //私人消息相关
-	http.LoadModule(&module_credit)  //充值提现相关
-	//http.Handle.GET("/wss", CreateWss) //开启socket链接
-
-	fmt.Println("this is http process  ", server_port)
-	http.Run(server_port)
+	httpServer := common.CreateHttp()
+	registerAPIModules(httpServer)
+	return httpServer
 }

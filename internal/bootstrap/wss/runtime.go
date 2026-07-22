@@ -1,7 +1,6 @@
 package wss
 
 import (
-	"cointrade/http/common"
 	"cointrade/http/httprun"
 	"cointrade/internal/bootstrap/shared"
 	"cointrade/models"
@@ -19,11 +18,7 @@ func OptionsFromEnv() Options {
 
 func Run(options Options) {
 	models.InitData()
-	httpServer := common.CreateHttp()
-	httpServer.Handle.GET("/wss", httprun.CreateWss)
-	httprun.DataUpdateFunc()
-	go httprun.MessageService()
-	go httprun.DBServiceMessageReciveFunc()
-	go httprun.DataService()
+	httpServer := httprun.CreateWSSHTTPServer()
+	httprun.StartWSSBackgroundJobs()
 	httpServer.Run(options.Port)
 }

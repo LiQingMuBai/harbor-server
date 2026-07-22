@@ -3,6 +3,7 @@ package httprun
 import (
 	"bytes"
 	"cointrade/config"
+	"cointrade/http/common"
 	"cointrade/lib/db"
 	"cointrade/models"
 	"cointrade/utils"
@@ -82,6 +83,19 @@ type WwebsocketWorker struct {
 	Ws           *websocket.Conn
 	WebState     *gin.Context
 	LastSendTime int
+}
+
+func StartWSSBackgroundJobs() {
+	DataUpdateFunc()
+	go MessageService()
+	go DBServiceMessageReciveFunc()
+	go DataService()
+}
+
+func CreateWSSHTTPServer() *common.HttpModules {
+	httpServer := common.CreateHttp()
+	httpServer.Handle.GET("/wss", CreateWss)
+	return httpServer
 }
 
 func DataUpdateFunc() {

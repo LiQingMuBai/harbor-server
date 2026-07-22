@@ -25,16 +25,30 @@ func OptionsFromEnv() Options {
 }
 
 func Run(options Options) {
+	initializeAdmin()
+	startAdminBackgroundJobs(options)
+	httpServer := createAdminHTTPServer()
+	httpServer.Run(options.Port)
+}
+
+func initializeAdmin() {
 	models.InitData()
 	adminmodels.SYSTEM_MODEL.LoadSiteConfig()
-	if len(options.RPCClients) > 0 {
-		go rpcClientTask(options.RPCClients)
+}
+
+func startAdminBackgroundJobs(options Options) {
+	if len(options.RPCClients) == 0 {
+		return
 	}
+	go rpcClientTask(options.RPCClients)
+}
+
+func createAdminHTTPServer() *common.HttpModules {
 	common.ModuleGlobal.EncodeFlag = false
 	httpServer := common.CreateHttp()
 	adminUser := new(adminmodules.AdminUserModule)
 	httpServer.LoadModule(adminUser)
-	httpServer.Run(options.Port)
+	return httpServer
 }
 
 func rpcClientTask(clients map[int]string) {

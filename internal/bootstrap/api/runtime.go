@@ -1,6 +1,7 @@
 package api
 
 import (
+	"cointrade/models"
 	"cointrade/http/httprun"
 	"cointrade/internal/bootstrap/shared"
 )
@@ -20,5 +21,8 @@ func OptionsFromEnv() Options {
 }
 
 func Run(options Options) {
-	httprun.Execute(options.ServerPort, options.LocalIP, options.RPCPort)
+	models.InitData()
+	httprun.StartAPIBackgroundJobs(options.LocalIP, options.RPCPort)
+	httpServer := httprun.CreateAPIHTTPServer()
+	httpServer.Run(options.ServerPort)
 }
