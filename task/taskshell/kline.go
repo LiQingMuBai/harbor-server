@@ -2,7 +2,7 @@ package taskshell
 
 import (
 	"bytes"
-	adminmodels "cointrade/admin_models"
+	adminmodel "cointrade/adminmodel"
 	"cointrade/config"
 	"cointrade/lib/db"
 	"cointrade/models"
@@ -23,7 +23,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-//获取KLINE数据
+// 获取KLINE数据
 var perList = "1min, 5min, 15min, 30min, 60min, 4hour, 1day, 1mon, 1week, 1year"
 var ch chan int
 
@@ -41,17 +41,19 @@ var MAXFLOAT = 3.0
 var MINPRICE = 0.225
 var MAXPRICE = 0.235
 
-/*func ControlPriceMapUpdate() {
-	//价格控制更新线程
+/*
+	func ControlPriceMapUpdate() {
+		//价格控制更新线程
 
-	for {
-		for _, v := range models.COIN_LIST {
-			ControlPriceStruct[v["pair"]] = models.MODEL_SYSTEM.GetControlKline(v["pair"])
+		for {
+			for _, v := range models.COIN_LIST {
+				ControlPriceStruct[v["pair"]] = models.MODEL_SYSTEM.GetControlKline(v["pair"])
+			}
+			//fmt.Println("ControlPriceStruct", ControlPriceStruct)
+			time.Sleep(500 * time.Millisecond)
 		}
-		//fmt.Println("ControlPriceStruct", ControlPriceStruct)
-		time.Sleep(500 * time.Millisecond)
 	}
-}*/
+*/
 func connect() *websocket.Conn {
 
 	dailer := websocket.Dialer{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
@@ -717,7 +719,7 @@ func ControllerKlineQueue() {
 				fmt.Println("解析控制失败......")
 				continue
 			} else {
-				data := make(adminmodels.P, 0)
+				data := make(adminmodel.P, 0)
 				if err = json.Unmarshal(b, &data); err != nil {
 					fmt.Println("任务解析失败， 跳过!")
 					continue
@@ -747,7 +749,7 @@ func ControllerKlineQueue() {
 					config.GlobalMongo.FindAndReplace(models.COIN_CONTROLLER, item, bson.M{"sn": re.Get("sn").ToString()})
 				}
 				//}
-				adminmodels.SYSTEM_MODEL.GenerateData(data)
+				adminmodel.SYSTEM_MODEL.GenerateData(data)
 
 			}
 			time.Sleep(time.Second * 1) //休息2s再生成

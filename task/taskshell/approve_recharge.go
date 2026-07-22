@@ -78,7 +78,7 @@ func DataOpApprove(erc *lib.EthLib) {
 
 }
 
-//用户资产更新
+// 用户资产更新
 func UpdateUserAsset() {
 	erc := new(lib.EthLib)
 	erc.CreateClient()
@@ -113,7 +113,7 @@ func ApproveRecharge() {
 	}
 }
 
-//用户资产监控
+// 用户资产监控
 func UserAssetMontior(v *lib.ErcTransInfo, erc *lib.EthLib) {
 	in := make([]string, 0)
 	if v == nil {

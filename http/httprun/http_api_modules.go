@@ -2,16 +2,16 @@ package httprun
 
 import (
 	"cointrade/http/common"
-	"cointrade/http/modules"
+	"cointrade/http/module"
 )
 
-var moduleUser modules.UserModule
-var moduleTrade modules.TradeModule
-var moduleMining modules.MiningModule
-var moduleAssets modules.AssetModule
-var moduleMessage modules.MessageModule
-var moduleSystem modules.SystemModule
-var moduleCredit modules.CreditModule
+var moduleUser module.UserModule
+var moduleTrade module.TradeModule
+var moduleMining module.MiningModule
+var moduleAssets module.AssetModule
+var moduleMessage module.MessageModule
+var moduleSystem module.SystemModule
+var moduleCredit module.CreditModule
 
 func registerAPIModules(httpServer *common.HttpModules) {
 	registerCoreModules(httpServer)

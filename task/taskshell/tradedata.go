@@ -20,7 +20,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-//火币行情数据接收并保存进MONGOdb
+// 火币行情数据接收并保存进MONGOdb
 const (
 	HUOBI_WS = "wss://api.huobi.pro/ws"
 )

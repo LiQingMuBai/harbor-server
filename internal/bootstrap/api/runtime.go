@@ -1,9 +1,9 @@
 package api
 
 import (
-	"cointrade/models"
 	"cointrade/http/httprun"
 	"cointrade/internal/bootstrap/shared"
+	"cointrade/models"
 )
 
 type Options struct {
