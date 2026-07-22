@@ -2,11 +2,11 @@ package modules
 
 import "cointrade/http/common"
 
-type MingingModule struct {
+type MiningModule struct {
 	common.ModuleBase
 }
 
-func (m *MingingModule) ModuleList() common.MODULEHANDLELIST {
+func (m *MiningModule) ModuleList() common.MODULEHANDLELIST {
 	var routes common.MODULEHANDLELIST
 	routes = append(routes, m.productRoutes()...)
 	routes = append(routes, m.orderRoutes()...)

@@ -137,7 +137,7 @@ func (m *UserModel) UserCoinLog(rq P) *AdminResponse {
 	}
 }
 
-func (m *UserModel) OpCredit(rq P) *AdminResponse {
+func (m *UserModel) AdjustUserCredit(rq P) *AdminResponse {
 	t := rq.Ts()
 	assetname := strings.ToLower(t.Get("assetname").ToString())
 	if assetname == "" {
@@ -216,7 +216,7 @@ func (m *UserModel) UserControllerExp(rq P) *AdminResponse {
 	}
 }
 
-func (m *UserModel) OpUser(rq P) *AdminResponse {
+func (m *UserModel) SaveUser(rq P) *AdminResponse {
 	t := rq.Ts()
 	up := make(P)
 	if v := t.Get("auth_lv").ToInt(); v > 0 {
@@ -477,7 +477,7 @@ func (m *UserModel) UserAssetByDirect(uid int) P {
 	return p
 }
 
-func (m *UserModel) OpuserAssetWallet(rq P) *AdminResponse {
+func (m *UserModel) UpdateUserAssetWallet(rq P) *AdminResponse {
 	t := rq.Ts()
 	if v := t.Get("id").ToInt(); v == 0 {
 		return &AdminResponse{
@@ -594,7 +594,7 @@ func (m *UserModel) UserTeamLevelCount(rq P) *AdminResponse {
 	}
 }
 
-func (m *UserModel) UserAssetConver(uid int) *AdminResponse {
+func (m *UserModel) GetUserAssetOverview(uid int) *AdminResponse {
 	uinfo := models.MODEL_USER.GetBaseInfo(uid)
 	if uinfo == nil {
 		return &AdminResponse{State: ERROR, Data: "用户不能存在!"}

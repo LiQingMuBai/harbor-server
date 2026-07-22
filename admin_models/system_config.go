@@ -271,7 +271,7 @@ func (s *SystemModel) NoticeList(rq P) *AdminResponse {
 	}
 }
 
-func (s *SystemModel) DelNotice(id int) *AdminResponse {
+func (s *SystemModel) DeleteNotice(id int) *AdminResponse {
 	if id == 0 {
 		return &AdminResponse{State: ERROR, Data: "请确认一个要删除的公告!"}
 	}
@@ -282,7 +282,7 @@ func (s *SystemModel) DelNotice(id int) *AdminResponse {
 	return &AdminResponse{State: ERROR, Data: "删除公告信息失败!"}
 }
 
-func (s *SystemModel) OpNotice(rq P) *AdminResponse {
+func (s *SystemModel) SaveNotice(rq P) *AdminResponse {
 	t := rq.Ts()
 	rs := new(AdminResponse)
 	if v := t.Get("title").ToString(); v == "" {
@@ -410,7 +410,7 @@ func (s *SystemModel) StatictisCount() *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: rs}
 }
 
-func (s *SystemModel) DelRule(rq P) *AdminResponse {
+func (s *SystemModel) DeleteRule(rq P) *AdminResponse {
 	t := rq.Ts()
 	id := t.Get("id").ToInt()
 	rs := new(AdminResponse)

@@ -15,17 +15,17 @@ func (m *AdminUserModule) authRoutes() common.MODULEHANDLELIST {
 	return common.MODULEHANDLELIST{
 		&common.ModuleHandles{Method: "post", Path: "/admin/login", Handles: common.HandleArray{m.Login}},
 		&common.ModuleHandles{Method: "post", Path: "/admin/logout", Handles: common.HandleArray{m.Logout}},
-		&common.ModuleHandles{Method: "get", Path: "/admin/token_info", Handles: common.HandleArray{m.TokenSid}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/admin_list", Handles: common.HandleArray{m.CheckLogin, m.AdminList}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/add_manage", Handles: common.HandleArray{m.CheckLogin, m.AddAdmin}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/mean_list", Handles: common.HandleArray{m.CheckLogin, m.MeanRouter}},
-		&common.ModuleHandles{Method: "get", Path: "/admin/mean_router", Handles: common.HandleArray{m.CheckLogin, m.MeanRouter}},
-		&common.ModuleHandles{Method: "get", Path: "/admin/auth_router", Handles: common.HandleArray{m.AuthRouter}},
+		&common.ModuleHandles{Method: "get", Path: "/admin/token_info", Handles: common.HandleArray{m.GetTokenInfo}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/admin_list", Handles: common.HandleArray{m.CheckLogin, m.ListAdmins}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/add_manage", Handles: common.HandleArray{m.CheckLogin, m.SaveAdmin}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/mean_list", Handles: common.HandleArray{m.CheckLogin, m.GetMenuTree}},
+		&common.ModuleHandles{Method: "get", Path: "/admin/mean_router", Handles: common.HandleArray{m.CheckLogin, m.GetMenuTree}},
+		&common.ModuleHandles{Method: "get", Path: "/admin/auth_router", Handles: common.HandleArray{m.GetRoleMenuTree}},
 		&common.ModuleHandles{Method: "post", Path: "/admin/role_list", Handles: common.HandleArray{m.CheckLogin, m.RoleList}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/handler_role", Handles: common.HandleArray{m.CheckLogin, m.HandlerRole}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/handler_mean", Handles: common.HandleArray{m.CheckLogin, m.HandlerMean}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/del_mean", Handles: common.HandleArray{m.CheckLogin, m.DelMean}},
-		&common.ModuleHandles{Method: "post", Path: "admin/del_admin", Handles: common.HandleArray{m.CheckLogin, m.DelAdmin}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/handler_role", Handles: common.HandleArray{m.CheckLogin, m.SaveRole}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/handler_mean", Handles: common.HandleArray{m.CheckLogin, m.SaveMenu}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/del_mean", Handles: common.HandleArray{m.CheckLogin, m.DeleteMenu}},
+		&common.ModuleHandles{Method: "post", Path: "admin/del_admin", Handles: common.HandleArray{m.CheckLogin, m.DeleteAdmin}},
 	}
 }
 
@@ -41,58 +41,58 @@ func (m *AdminUserModule) Logout(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.AdminResponse{State: adminmodels.SUCCESS, Data: adminmodels.MODEL_USER.Logout(sid)})
 }
 
-func (m *AdminUserModule) TokenSid(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.TokenInfo(r.GetString("sid")))
+func (m *AdminUserModule) GetTokenInfo(r *gin.Context) {
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.GetTokenInfo(r.GetString("sid")))
 }
 
-func (m *AdminUserModule) AddAdmin(r *gin.Context) {
+func (m *AdminUserModule) SaveAdmin(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.AddAdmin(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.SaveAdmin(rq))
 }
 
-func (m *AdminUserModule) MeanRouter(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.MeanRouter())
+func (m *AdminUserModule) GetMenuTree(r *gin.Context) {
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.GetMenuTree())
 }
 
 func (m *AdminUserModule) RoleList(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.RoleList())
 }
 
-func (m *AdminUserModule) AuthRouter(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.AuthRouter())
+func (m *AdminUserModule) GetRoleMenuTree(r *gin.Context) {
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.GetRoleMenuTree())
 }
 
-func (m *AdminUserModule) AdminList(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.AdminList())
+func (m *AdminUserModule) ListAdmins(r *gin.Context) {
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.ListAdmins())
 }
 
-func (m *AdminUserModule) DelAdmin(r *gin.Context) {
+func (m *AdminUserModule) DeleteAdmin(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.DelAdmin(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.DeleteAdmin(id))
 }
 
-func (m *AdminUserModule) DelMean(r *gin.Context) {
+func (m *AdminUserModule) DeleteMenu(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.DelMean(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.DeleteMenu(rq))
 }
 
-func (m *AdminUserModule) HandlerMean(r *gin.Context) {
+func (m *AdminUserModule) SaveMenu(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.HandlerMean(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.SaveMenu(rq))
 }
 
-func (m *AdminUserModule) HandlerRole(r *gin.Context) {
+func (m *AdminUserModule) SaveRole(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.HandlerRole(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.SaveRole(rq))
 }
 
 func (m *AdminUserModule) CheckLogin(r *gin.Context) {
 	sid := r.GetString("sid")
-	u := adminmodels.MODEL_USER.SidInfo(sid)
+	u := adminmodels.MODEL_USER.GetAdminBySession(sid)
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
 	if u == nil {

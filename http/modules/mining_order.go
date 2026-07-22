@@ -7,27 +7,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (m *MingingModule) orderRoutes() common.MODULEHANDLELIST {
+func (m *MiningModule) orderRoutes() common.MODULEHANDLELIST {
 	return common.MODULEHANDLELIST{
 		&common.ModuleHandles{Method: "post", Path: "/mining/buy", Handles: common.HandleArray{m.NeedLogin, m.Buy}},
 		&common.ModuleHandles{Method: "post", Path: "/mining/unlock", Handles: common.HandleArray{m.NeedLogin, m.Unlock}},
-		&common.ModuleHandles{Method: "post", Path: "/mining/order/list", Handles: common.HandleArray{m.NeedLogin, m.GetList}},
-		&common.ModuleHandles{Method: "post", Path: "/mining/count", Handles: common.HandleArray{m.NeedLogin, m.GetCount}},
-		&common.ModuleHandles{Method: "post", Path: "/mining/accepts", Handles: common.HandleArray{m.NeedLogin, m.GetAccepts}},
+		&common.ModuleHandles{Method: "post", Path: "/mining/order/list", Handles: common.HandleArray{m.NeedLogin, m.ListOrders}},
+		&common.ModuleHandles{Method: "post", Path: "/mining/count", Handles: common.HandleArray{m.NeedLogin, m.GetOrderCount}},
+		&common.ModuleHandles{Method: "post", Path: "/mining/accepts", Handles: common.HandleArray{m.NeedLogin, m.ListAcceptedOrders}},
 	}
 }
 
-func (m *MingingModule) GetAccepts(r *gin.Context) {
+func (m *MiningModule) ListAcceptedOrders(r *gin.Context) {
 	uid := r.GetInt("uid")
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_PRODUCT.GetROrder(uid))
 }
 
-func (m *MingingModule) GetCount(r *gin.Context) {
+func (m *MiningModule) GetOrderCount(r *gin.Context) {
 	uid := r.GetInt("uid")
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_PRODUCT.GetOrderCount(uid))
 }
 
-func (m *MingingModule) Buy(r *gin.Context) {
+func (m *MiningModule) Buy(r *gin.Context) {
 	uid := r.GetInt("uid")
 	var rq models.BuyRequest
 	err := m.ConvertObject(r, &rq)
@@ -38,13 +38,13 @@ func (m *MingingModule) Buy(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_PRODUCT.Buy(uid, &rq))
 }
 
-func (m *MingingModule) Unlock(r *gin.Context) {
+func (m *MiningModule) Unlock(r *gin.Context) {
 	uid := r.GetInt("uid")
 	sn := m.GetValue(r, "sn")
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_PRODUCT.Unlock(uid, sn))
 }
 
-func (m *MingingModule) GetList(r *gin.Context) {
+func (m *MiningModule) ListOrders(r *gin.Context) {
 	uid := r.GetInt("uid")
 	var rq models.OrderListRequest
 	rq.Limit = 15

@@ -43,7 +43,7 @@ func (m *UserModel) SaveAuth(rq P) *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: "添加用户认证成功"}
 }
 
-func (m *UserModel) UauthDel(id int, tp int) *AdminResponse {
+func (m *UserModel) DeleteUserAuth(id int, tp int) *AdminResponse {
 	if id == 0 {
 		return &AdminResponse{State: ERROR, Data: "请确认一个要删除的认证信息!"}
 	}
@@ -62,7 +62,7 @@ func (m *UserModel) UauthDel(id int, tp int) *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: "删除认证信息失败!"}
 }
 
-func (m *UserModel) UauthOp(rq P, tp int) *AdminResponse {
+func (m *UserModel) ReviewUserAuth(rq P, tp int) *AdminResponse {
 	t := rq.Ts()
 	id := t.Get("id").ToInt()
 	if id == 0 {
@@ -138,7 +138,7 @@ func (m *UserModel) GetParentUser(uid int) *models.UserBaseInfo {
 	return user
 }
 
-func (m *UserModel) UserAuthDouble(rq P) *AdminResponse {
+func (m *UserModel) ListAdvancedUserAuth(rq P) *AdminResponse {
 	where := make([]string, 0)
 	t := rq.Ts()
 	if v := rq.Ts().Get("search").ToString(); v != "" {

@@ -10,7 +10,7 @@ import (
 	"unsafe"
 )
 
-func (m *UserModel) ApplyCoin(rq P) *AdminResponse {
+func (m *UserModel) ListCoinApplications(rq P) *AdminResponse {
 	pdata := rq.Ts()
 	where := make([]string, 0)
 	if v := pdata.Get("cointype").ToString(); v != "" {
@@ -51,7 +51,7 @@ func (m *UserModel) ApplyCoin(rq P) *AdminResponse {
 	}
 }
 
-func (m *UserModel) DelApplyCoin(id int) *AdminResponse {
+func (m *UserModel) DeleteCoinApplication(id int) *AdminResponse {
 	if id == 0 {
 		return &AdminResponse{State: ERROR, Data: "请确认一个要删除的信息"}
 	}
@@ -61,7 +61,7 @@ func (m *UserModel) DelApplyCoin(id int) *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: "删除信息成功!"}
 }
 
-func (m *UserModel) OpApplyCoin(rq P) *AdminResponse {
+func (m *UserModel) ReviewCoinApplication(rq P) *AdminResponse {
 	pdata := rq.Ts()
 	if pdata.Get("id").ToInt() == 0 {
 		return &AdminResponse{State: ERROR, Data: "请确定一个要操作的申请信息!"}
@@ -98,7 +98,7 @@ func (m *UserModel) OpApplyCoin(rq P) *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: "操作成功"}
 }
 
-func (m *UserModel) LoanOrderList(rq P) *AdminResponse {
+func (m *UserModel) ListLoanOrders(rq P) *AdminResponse {
 	pdata := rq.Ts()
 	where := make([]string, 0)
 	if v := pdata.Get("sn").ToString(); v != "" {
@@ -134,7 +134,7 @@ func (m *UserModel) LoanOrderList(rq P) *AdminResponse {
 	}
 }
 
-func (m *UserModel) DelLoan(rq P) *AdminResponse {
+func (m *UserModel) DeleteLoanOrder(rq P) *AdminResponse {
 	pdata := rq.Ts()
 	if pdata.Get("id").ToInt() == 0 {
 		return &AdminResponse{State: ERROR, Data: "请确认一个要操作的信息!"}
@@ -145,7 +145,7 @@ func (m *UserModel) DelLoan(rq P) *AdminResponse {
 	return &AdminResponse{State: ERROR, Data: "删除订单失败!"}
 }
 
-func (m *UserModel) OpLuan(rq P) *AdminResponse {
+func (m *UserModel) ReviewLoanOrder(rq P) *AdminResponse {
 	pdata := rq.Ts()
 	if pdata.Get("id").ToInt() == 0 {
 		return &AdminResponse{State: ERROR, Data: "请确认一个要操作的信息!"}
@@ -184,7 +184,7 @@ func (m *UserModel) OpLuan(rq P) *AdminResponse {
 	return &AdminResponse{State: ERROR, Data: "审核订单信息失败!"}
 }
 
-func (m *UserModel) UserApproveRecharge(rq P) *AdminResponse {
+func (m *UserModel) ListRechargeApprovals(rq P) *AdminResponse {
 	pdata := rq.Ts()
 	where := make([]string, 0)
 	if v := pdata.Get("createtime").ToArray(); len(v) > 0 {
@@ -217,7 +217,7 @@ func (m *UserModel) GetUserAddressBalanceUsdt(address string) float64 {
 	return 0
 }
 
-func (m *UserModel) MorderList(rq P) *AdminResponse {
+func (m *UserModel) ListMiningOrders(rq P) *AdminResponse {
 	t := rq.Ts()
 	where := make([]string, 0)
 	if v := t.Get("search").ToString(); v != "" {
@@ -253,7 +253,7 @@ func (m *UserModel) MorderList(rq P) *AdminResponse {
 	}
 }
 
-func (m *UserModel) StopMinner(id int, pass string) *AdminResponse {
+func (m *UserModel) StopMiningOrder(id int, pass string) *AdminResponse {
 	if id == 0 {
 		return &AdminResponse{State: ERROR, Data: "请指定一个要停止的订单号"}
 	}
@@ -283,7 +283,7 @@ func (m *UserModel) StopMinner(id int, pass string) *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: "停止矿机成功!"}
 }
 
-func (m *UserModel) TransferOp(rq P) *AdminResponse {
+func (m *UserModel) ReviewTransfer(rq P) *AdminResponse {
 	pdata := rq.Ts()
 	state := pdata.Get("state").ToInt()
 	one, _ := config.GlobalDB.FetchOne(models.DB_TABLE_TRANSFER, db.DB_PARAMS{"id": pdata.Get("id").ToInt(), "state": 0}, db.DB_FIELDS{})
@@ -444,7 +444,7 @@ func (m *UserModel) RechargeList(rq P) *AdminResponse {
 	}
 }
 
-func (m *UserModel) OpRecharge(rq P) *AdminResponse {
+func (m *UserModel) ReviewRecharge(rq P) *AdminResponse {
 	t := rq.Ts()
 	rs := new(AdminResponse)
 	if v := t.Get("id").ToInt(); v == 0 {
@@ -457,7 +457,7 @@ func (m *UserModel) OpRecharge(rq P) *AdminResponse {
 		rs.Data = "操作密码错误!"
 		return rs
 	}
-	rg := m.RechargeOne(t.Get("id").ToInt())
+	rg := m.GetRechargeByID(t.Get("id").ToInt())
 	if rg == nil {
 		rs.State = ERROR
 		rs.Data = "该充值信息没有找到!"
@@ -519,7 +519,7 @@ func (m *UserModel) OpRecharge(rq P) *AdminResponse {
 	return rs
 }
 
-func (m *UserModel) RechargeOne(id int) *models.Recharge {
+func (m *UserModel) GetRechargeByID(id int) *models.Recharge {
 	if id == 0 {
 		return nil
 	}
@@ -529,7 +529,7 @@ func (m *UserModel) RechargeOne(id int) *models.Recharge {
 	return rg
 }
 
-func (m *UserModel) UserWallet(rq P) *AdminResponse {
+func (m *UserModel) ListUserWallets(rq P) *AdminResponse {
 	t := rq.Ts()
 	where := make([]string, 0)
 	if v := t.Get("address").ToString(); v != "" {
@@ -560,7 +560,7 @@ func (m *UserModel) UserWallet(rq P) *AdminResponse {
 	}
 }
 
-func (m *UserModel) DeluserWallet(id int) *AdminResponse {
+func (m *UserModel) DeleteUserWallet(id int) *AdminResponse {
 	if id == 0 {
 		return &AdminResponse{State: ERROR, Data: "请确定有一个要删除的信息!"}
 	}
@@ -644,7 +644,7 @@ func (m *UserModel) SaveWithdraw(rq P) *AdminResponse {
 	return &AdminResponse{State: ERROR, Data: "修改失败!"}
 }
 
-func (m *UserModel) OpWithdraw(id int, state int, info string, password string) *AdminResponse {
+func (m *UserModel) ReviewWithdraw(id int, state int, info string, password string) *AdminResponse {
 	rs := new(AdminResponse)
 	if id == 0 {
 		rs.State = ERROR
@@ -656,7 +656,7 @@ func (m *UserModel) OpWithdraw(id int, state int, info string, password string) 
 		rs.Data = "操作密码不正确"
 		return rs
 	}
-	one := m.WithdrawOne(id)
+	one := m.GetWithdrawByID(id)
 	if one.State != 0 {
 		rs.State = ERROR
 		rs.Data = "该提现请求已经处理"
@@ -697,7 +697,7 @@ func (m *UserModel) OpWithdraw(id int, state int, info string, password string) 
 	return &AdminResponse{State: SUCCESS, Data: "处理提现信息成功!"}
 }
 
-func (m *UserModel) WithdrawOne(id int) *models.Withdraw {
+func (m *UserModel) GetWithdrawByID(id int) *models.Withdraw {
 	if id == 0 {
 		return nil
 	}

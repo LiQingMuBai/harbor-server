@@ -10,12 +10,12 @@ import (
 	"strings"
 )
 
-type MinnerModel struct{}
+type MiningModel struct{}
 
 /**
  *	矿机列表
  */
-func (m *MinnerModel) MinnerList(rq P) *AdminResponse {
+func (m *MiningModel) ListMiningProducts(rq P) *AdminResponse {
 	t := rq.Ts()
 
 	count := config.GlobalDB.GetCount(models.DB_TABLE_MINING_PRODUCT, db.DB_PARAMS{})
@@ -41,7 +41,7 @@ func (m *MinnerModel) MinnerList(rq P) *AdminResponse {
 /**
  * 操作矿机
  */
-func (m *MinnerModel) OpMinner(rq *models.ProductInfo) *AdminResponse {
+func (m *MiningModel) SaveMiningProduct(rq *models.ProductInfo) *AdminResponse {
 	rs := new(AdminResponse)
 	if rq.Name == "" {
 		rs.State = PARAM_ERROR
@@ -96,7 +96,7 @@ func (m *MinnerModel) OpMinner(rq *models.ProductInfo) *AdminResponse {
 /**
  *	用户订单矿机列表
  */
-func (m *MinnerModel) UserMinnerOrderList(rq P) *AdminResponse {
+func (m *MiningModel) ListUserMiningOrders(rq P) *AdminResponse {
 	where := make([]string, 0)
 	t := rq.Ts()
 	if v := t.Get("sn").ToString(); v != "" {

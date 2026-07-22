@@ -14,20 +14,20 @@ func (m *AdminUserModule) systemRoutes() common.MODULEHANDLELIST {
 	return common.MODULEHANDLELIST{
 		&common.ModuleHandles{Method: "post", Path: "/admin/coin_list", Handles: common.HandleArray{m.CheckLogin, m.CoinList}},
 		&common.ModuleHandles{Method: "post", Path: "/admin/coindesc_list", Handles: common.HandleArray{m.CheckLogin, m.CoinDescList}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/op_coindesc", Handles: common.HandleArray{m.CheckLogin, m.OpCoinDesc}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/del_coindesc", Handles: common.HandleArray{m.CheckLogin, m.DelCoinDesc}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/op_coindesc", Handles: common.HandleArray{m.CheckLogin, m.SaveCoinDesc}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/del_coindesc", Handles: common.HandleArray{m.CheckLogin, m.DeleteCoinDesc}},
 		&common.ModuleHandles{Method: "post", Path: "/admin/save_coin", Handles: common.HandleArray{m.CheckLogin, m.SaveCoin}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/del_coin", Handles: common.HandleArray{m.CheckLogin, m.DelCoin}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/del_coin", Handles: common.HandleArray{m.CheckLogin, m.DeleteCoin}},
 		&common.ModuleHandles{Method: "post", Path: "/admin/currency_list", Handles: common.HandleArray{m.CheckLogin, m.CurrencyList}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/op_currency", Handles: common.HandleArray{m.CheckLogin, m.OpCurrency}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/del_currency", Handles: common.HandleArray{m.CheckLogin, m.DelCurrency}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/op_currency", Handles: common.HandleArray{m.CheckLogin, m.SaveCurrency}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/del_currency", Handles: common.HandleArray{m.CheckLogin, m.DeleteCurrency}},
 		&common.ModuleHandles{Method: "post", Path: "/admin/minner_open", Handles: common.HandleArray{m.CheckLogin, m.MinnerOpen}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/minner_list", Handles: common.HandleArray{m.CheckLogin, m.MinnerList}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/minner_op", Handles: common.HandleArray{m.CheckLogin, m.OpMinner}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/minner_del", Handles: common.HandleArray{m.CheckLogin, m.DelMinner}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/minner_list", Handles: common.HandleArray{m.CheckLogin, m.ListMiningProducts}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/minner_op", Handles: common.HandleArray{m.CheckLogin, m.SaveMiningProduct}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/minner_del", Handles: common.HandleArray{m.CheckLogin, m.DeleteMiningProduct}},
 		&common.ModuleHandles{Method: "post", Path: "/admin/notice_list", Handles: common.HandleArray{m.CheckLogin, m.NoticeList}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/notice_op", Handles: common.HandleArray{m.CheckLogin, m.OPNotice}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/notice_del", Handles: common.HandleArray{m.CheckLogin, m.DelNotice}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/notice_op", Handles: common.HandleArray{m.CheckLogin, m.SaveNotice}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/notice_del", Handles: common.HandleArray{m.CheckLogin, m.DeleteNotice}},
 		&common.ModuleHandles{Method: "post", Path: "/admin/setting", Handles: common.HandleArray{m.CheckLogin, m.Setting}},
 		&common.ModuleHandles{Method: "post", Path: "/admin/sitecount", Handles: common.HandleArray{m.CheckLogin, m.SiteCount}},
 		&common.ModuleHandles{Method: "post", Path: "/admin/notify_list", Handles: common.HandleArray{m.CheckLogin, m.NotifyList}},
@@ -35,14 +35,14 @@ func (m *AdminUserModule) systemRoutes() common.MODULEHANDLELIST {
 		&common.ModuleHandles{Method: "post", Path: "/admin/statictis_count", Handles: common.HandleArray{m.CheckLogin, m.StatictisCount}},
 		&common.ModuleHandles{Method: "post", Path: "admin/rulelist", Handles: common.HandleArray{m.CheckLogin, m.Rulelist}},
 		&common.ModuleHandles{Method: "post", Path: "admin/rulehandler", Handles: common.HandleArray{m.RuleHandler}},
-		&common.ModuleHandles{Method: "post", Path: "admin/del_rule", Handles: common.HandleArray{m.CheckLogin, m.DelRule}},
+		&common.ModuleHandles{Method: "post", Path: "admin/del_rule", Handles: common.HandleArray{m.CheckLogin, m.DeleteRule}},
 		&common.ModuleHandles{Method: "post", Path: "admin/controller_list", Handles: common.HandleArray{m.CheckLogin, m.ControllerList}},
-		&common.ModuleHandles{Method: "post", Path: "admin/del_controller", Handles: common.HandleArray{m.CheckLogin, m.DelController}},
+		&common.ModuleHandles{Method: "post", Path: "admin/del_controller", Handles: common.HandleArray{m.CheckLogin, m.DeleteController}},
 		&common.ModuleHandles{Method: "post", Path: "admin/kline_controller", Handles: common.HandleArray{m.CheckLogin, m.KlineController}},
 		&common.ModuleHandles{Method: "post", Path: "admin/explode_controller", Handles: common.HandleArray{m.CheckLogin, m.ExplodeController}},
 		&common.ModuleHandles{Method: "post", Path: "admin/accept_list", Handles: common.HandleArray{m.CheckLogin, m.AcceptList}},
-		&common.ModuleHandles{Method: "post", Path: "admin/op_acceptminner", Handles: common.HandleArray{m.CheckLogin, m.OpAcceptMinner}},
-		&common.ModuleHandles{Method: "post", Path: "admin/del_acceptminner", Handles: common.HandleArray{m.CheckLogin, m.DelAcceptMinner}},
+		&common.ModuleHandles{Method: "post", Path: "admin/op_acceptminner", Handles: common.HandleArray{m.CheckLogin, m.SaveMiningAcceptance}},
+		&common.ModuleHandles{Method: "post", Path: "admin/del_acceptminner", Handles: common.HandleArray{m.CheckLogin, m.DeleteMiningAcceptance}},
 		&common.ModuleHandles{Method: "post", Path: "admin/op_loan", Handles: common.HandleArray{m.CheckLogin, m.LoanSetting}},
 		&common.ModuleHandles{Method: "post", Path: "admin/loan", Handles: common.HandleArray{m.CheckLogin, m.LoanList}},
 		&common.ModuleHandles{Method: "post", Path: "admin/audit_accept", Handles: common.HandleArray{m.CheckLogin, m.AuditAccept}},
@@ -66,15 +66,15 @@ func (m *AdminUserModule) LoanSetting(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.LoanSetting(rq))
 }
 
-func (m *AdminUserModule) DelAcceptMinner(r *gin.Context) {
+func (m *AdminUserModule) DeleteMiningAcceptance(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DelMinneAccept(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DeleteMiningAcceptance(id))
 }
 
-func (m *AdminUserModule) OpAcceptMinner(r *gin.Context) {
+func (m *AdminUserModule) SaveMiningAcceptance(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.OpMinnerAccept(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.SaveMiningAcceptance(rq))
 }
 
 func (m *AdminUserModule) AcceptList(r *gin.Context) {
@@ -83,10 +83,10 @@ func (m *AdminUserModule) AcceptList(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.AcceptList(rq))
 }
 
-func (m *AdminUserModule) DelController(r *gin.Context) {
+func (m *AdminUserModule) DeleteController(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DelController(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DeleteController(rq))
 }
 
 func (m *AdminUserModule) ControllerList(r *gin.Context) {
@@ -107,10 +107,10 @@ func (m *AdminUserModule) KlineController(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.KlineController(rq))
 }
 
-func (m *AdminUserModule) DelRule(r *gin.Context) {
+func (m *AdminUserModule) DeleteRule(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DelRule(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DeleteRule(rq))
 }
 
 func (m *AdminUserModule) Rulelist(r *gin.Context) {
@@ -156,26 +156,26 @@ func (m *AdminUserModule) NoticeList(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.NoticeList(rq))
 }
 
-func (m *AdminUserModule) OPNotice(r *gin.Context) {
+func (m *AdminUserModule) SaveNotice(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.OpNotice(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.SaveNotice(rq))
 }
 
-func (m *AdminUserModule) DelNotice(r *gin.Context) {
+func (m *AdminUserModule) DeleteNotice(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DelNotice(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DeleteNotice(id))
 }
 
-func (m *AdminUserModule) DelMinner(r *gin.Context) {
+func (m *AdminUserModule) DeleteMiningProduct(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DelMinner(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DeleteMiningProduct(id))
 }
 
-func (m *AdminUserModule) OpMinner(r *gin.Context) {
+func (m *AdminUserModule) SaveMiningProduct(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.OpMinner(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.SaveMiningProduct(rq))
 }
 
 func (m *AdminUserModule) MinnerOpen(r *gin.Context) {
@@ -185,37 +185,37 @@ func (m *AdminUserModule) MinnerOpen(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.MinnerSet(id, key, isopen))
 }
 
-func (m *AdminUserModule) MinnerList(r *gin.Context) {
+func (m *AdminUserModule) ListMiningProducts(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.MinnerList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.ListMiningProducts(rq))
 }
 
-func (m *AdminUserModule) DelCurrency(r *gin.Context) {
+func (m *AdminUserModule) DeleteCurrency(r *gin.Context) {
 	id := m.GetValue(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DelCurrency(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DeleteCurrency(id))
 }
 
-func (m *AdminUserModule) OpCurrency(r *gin.Context) {
+func (m *AdminUserModule) SaveCurrency(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.OpCurrency(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.SaveCurrency(rq))
 }
 
 func (m *AdminUserModule) CurrencyList(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.CurrencyList())
 }
 
-func (m *AdminUserModule) DelCoin(r *gin.Context) {
+func (m *AdminUserModule) DeleteCoin(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DelCoin(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DeleteCoin(rq))
 }
 
 func (m *AdminUserModule) SaveCoin(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.OpCoin(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.SaveCoin(rq))
 }
 
 func (m *AdminUserModule) CoinDescList(r *gin.Context) {
@@ -224,15 +224,15 @@ func (m *AdminUserModule) CoinDescList(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.CoinDescList(rq))
 }
 
-func (m *AdminUserModule) OpCoinDesc(r *gin.Context) {
+func (m *AdminUserModule) SaveCoinDesc(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.OpCoinDesc(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.SaveCoinDesc(rq))
 }
 
-func (m *AdminUserModule) DelCoinDesc(r *gin.Context) {
+func (m *AdminUserModule) DeleteCoinDesc(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DelCoinDesc(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.DeleteCoinDesc(id))
 }
 
 func (m *AdminUserModule) CoinList(r *gin.Context) {

@@ -11,7 +11,7 @@ import (
 func (m *AdminUserModule) userRoutes() common.MODULEHANDLELIST {
 	return common.MODULEHANDLELIST{
 		&common.ModuleHandles{Method: "post", Path: "/admin/userlist", Handles: common.HandleArray{m.CheckLogin, m.UserList}},
-		&common.ModuleHandles{Method: "post", Path: "/admin/op_user", Handles: common.HandleArray{m.CheckLogin, m.OpUser}},
+		&common.ModuleHandles{Method: "post", Path: "/admin/op_user", Handles: common.HandleArray{m.CheckLogin, m.SaveUser}},
 		&common.ModuleHandles{Method: "post", Path: "/admin/usercoinlog", Handles: common.HandleArray{m.CheckLogin, m.UserCoinLog}},
 		&common.ModuleHandles{Method: "post", Path: "/admin/coin/change", Handles: common.HandleArray{m.CheckLogin, m.ChangeCoin}},
 		&common.ModuleHandles{Method: "post", Path: "/admin/user_asset", Handles: common.HandleArray{m.CheckLogin, m.UserAsset}},
@@ -20,7 +20,7 @@ func (m *AdminUserModule) userRoutes() common.MODULEHANDLELIST {
 		&common.ModuleHandles{Method: "post", Path: "admin/agent_count", Handles: common.HandleArray{m.CheckLogin, m.AgentCount}},
 		&common.ModuleHandles{Method: "post", Path: "admin/agent_list", Handles: common.HandleArray{m.CheckLogin, m.AgentList}},
 		&common.ModuleHandles{Method: "post", Path: "admin/employer_list", Handles: common.HandleArray{m.CheckLogin, m.EmployerList}},
-		&common.ModuleHandles{Method: "post", Path: "admin/del_agent", Handles: common.HandleArray{m.CheckLogin, m.DelAgent}},
+		&common.ModuleHandles{Method: "post", Path: "admin/del_agent", Handles: common.HandleArray{m.CheckLogin, m.DeleteAgent}},
 		&common.ModuleHandles{Method: "post", Path: "admin/userexplode_controller", Handles: common.HandleArray{m.CheckLogin, m.UserControllerExp}},
 		&common.ModuleHandles{Method: "post", Path: "admin/asset", Handles: common.HandleArray{m.CheckLogin, m.Assets}},
 		&common.ModuleHandles{Method: "post", Path: "admin/save_parentmemo", Handles: common.HandleArray{m.CheckLogin, m.SaveParentMemo}},
@@ -44,7 +44,7 @@ func (m *AdminUserModule) SaveParentMemo(r *gin.Context) {
 
 func (m *AdminUserModule) Assets(r *gin.Context) {
 	uid := m.GetInt(r, "uid")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.UserAssetConver(uid))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.GetUserAssetOverview(uid))
 }
 
 func (m *AdminUserModule) UserControllerExp(r *gin.Context) {
@@ -53,9 +53,9 @@ func (m *AdminUserModule) UserControllerExp(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.UserControllerExp(rq))
 }
 
-func (m *AdminUserModule) DelAgent(r *gin.Context) {
+func (m *AdminUserModule) DeleteAgent(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_AGENT.DelAgent(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_AGENT.DeleteAgent(id))
 }
 
 func (m *AdminUserModule) UserCoinLog(r *gin.Context) {
@@ -85,7 +85,7 @@ func (m *AdminUserModule) AgentCount(r *gin.Context) {
 func (m *AdminUserModule) ChangeCoin(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.OpCredit(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.AdjustUserCredit(rq))
 }
 
 func (m *AdminUserModule) KickUser(r *gin.Context) {
@@ -93,10 +93,10 @@ func (m *AdminUserModule) KickUser(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.SYSTEM_MODEL.KickUser(uid))
 }
 
-func (m *AdminUserModule) OpUser(r *gin.Context) {
+func (m *AdminUserModule) SaveUser(r *gin.Context) {
 	rq := make(adminmodels.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.OpUser(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodels.MODEL_USER.SaveUser(rq))
 }
 
 func (m *AdminUserModule) UserLevelCount(r *gin.Context) {

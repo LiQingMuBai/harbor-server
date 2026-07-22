@@ -136,7 +136,7 @@ func (a *AgentModel) EmpoyerList(rq P) *AdminResponse {
 	}
 }
 
-func (a *AgentModel) DelAgent(id int) *AdminResponse {
+func (a *AgentModel) DeleteAgent(id int) *AdminResponse {
 	if id == 0 {
 		return &AdminResponse{
 			State: ERROR,

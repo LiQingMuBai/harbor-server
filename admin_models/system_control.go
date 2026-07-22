@@ -208,7 +208,7 @@ func (s *SystemModel) ControllerTradeList() *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: seq}
 }
 
-func (s *SystemModel) DelController(rq P) *AdminResponse {
+func (s *SystemModel) DeleteController(rq P) *AdminResponse {
 	ts := rq.Ts()
 	if ts.Get("id").ToString() == "" {
 		return &AdminResponse{State: ERROR, Data: "参数错误， 无法删除"}

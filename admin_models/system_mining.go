@@ -125,7 +125,7 @@ func (s *SystemModel) ExplodeTradeList() *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: list}
 }
 
-func (s *SystemModel) DelExplodeTrade(id int) *AdminResponse {
+func (s *SystemModel) DeleteExplodeTrade(id int) *AdminResponse {
 	if id == 0 {
 		return &AdminResponse{State: ERROR, Data: "删除交割合约配置失败！"}
 	}
@@ -136,7 +136,7 @@ func (s *SystemModel) DelExplodeTrade(id int) *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: "删除成功！"}
 }
 
-func (s *SystemModel) OpExplodeTrade(rq P) *AdminResponse {
+func (s *SystemModel) SaveExplodeTrade(rq P) *AdminResponse {
 	t := rq.Ts()
 	rs := new(AdminResponse)
 	if v := t.Get("time").ToInt(); v == 0 {
@@ -190,7 +190,7 @@ func (s *SystemModel) MinnerPair(condition ...string) map[int]string {
 	return rs
 }
 
-func (s *SystemModel) MinnerList(rq P) *AdminResponse {
+func (s *SystemModel) ListMiningProducts(rq P) *AdminResponse {
 	t := rq.Ts()
 	where := make([]string, 0)
 	if v := t.Get("type").ToString(); v != "" {
@@ -212,7 +212,7 @@ func (s *SystemModel) MinnerList(rq P) *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: P{"list": list, "count": count, "chan_type": s.ContractFlag()}}
 }
 
-func (s *SystemModel) DelMinner(id int) *AdminResponse {
+func (s *SystemModel) DeleteMiningProduct(id int) *AdminResponse {
 	rs := new(AdminResponse)
 	if id == 0 {
 		rs.State = ERROR
@@ -234,7 +234,7 @@ func (s *SystemModel) DelMinner(id int) *AdminResponse {
 	return rs
 }
 
-func (s *SystemModel) OpMinner(rq P) *AdminResponse {
+func (s *SystemModel) SaveMiningProduct(rq P) *AdminResponse {
 	t := rq.Ts()
 	rs := new(AdminResponse)
 	if v := t.Get("name").ToString(); v == "" {
@@ -340,7 +340,7 @@ func (s *SystemModel) AcceptList(rq P) *AdminResponse {
 	}
 }
 
-func (s *SystemModel) DelMinneAccept(id int) *AdminResponse {
+func (s *SystemModel) DeleteMiningAcceptance(id int) *AdminResponse {
 	if id == 0 {
 		return &AdminResponse{State: ERROR, Data: "请指定一个要删除的预约"}
 	}
@@ -370,7 +370,7 @@ func (s *SystemModel) AuditAccept(rq P) *AdminResponse {
 	return &AdminResponse{State: ERROR, Data: err.Error()}
 }
 
-func (s *SystemModel) OpMinnerAccept(rq P) *AdminResponse {
+func (s *SystemModel) SaveMiningAcceptance(rq P) *AdminResponse {
 	t := rq.Ts()
 	if t.Get("uid").ToInt() == 0 {
 		return &AdminResponse{State: ERROR, Data: "请填写一个用户!"}

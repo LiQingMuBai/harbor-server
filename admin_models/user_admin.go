@@ -48,7 +48,7 @@ func (m *UserModel) Login(request LoginRequest) *AdminResponse {
 	}
 
 	rs.State = SUCCESS
-	sid := m.Sid()
+	sid := m.NewSessionID()
 	rs.Data = P{
 		"token": sid,
 	}
@@ -58,8 +58,8 @@ func (m *UserModel) Login(request LoginRequest) *AdminResponse {
 	return rs
 }
 
-func (m *UserModel) TokenInfo(sid string) *AdminResponse {
-	u := m.SidInfo(sid)
+func (m *UserModel) GetTokenInfo(sid string) *AdminResponse {
+	u := m.GetAdminBySession(sid)
 	if u == nil {
 		return &AdminResponse{
 			State: 50008,
@@ -72,7 +72,7 @@ func (m *UserModel) TokenInfo(sid string) *AdminResponse {
 	}
 }
 
-func (m *UserModel) DelAdmin(uid int) *AdminResponse {
+func (m *UserModel) DeleteAdmin(uid int) *AdminResponse {
 	if uid == 0 {
 		return &AdminResponse{
 			State: ERROR,
@@ -98,7 +98,7 @@ func (m *UserModel) DelAdmin(uid int) *AdminResponse {
 	}
 }
 
-func (m *UserModel) AdminList() *AdminResponse {
+func (m *UserModel) ListAdmins() *AdminResponse {
 	list, _ := config.GlobalDB.FetchRows(models.DB_TABLE_ADMIN, db.DB_PARAMS{}, db.DB_FIELDS{})
 	return &AdminResponse{
 		State: SUCCESS,
@@ -109,7 +109,7 @@ func (m *UserModel) AdminList() *AdminResponse {
 	}
 }
 
-func (m *UserModel) AddAdmin(rq P) *AdminResponse {
+func (m *UserModel) SaveAdmin(rq P) *AdminResponse {
 	t := rq.Ts()
 	rs := new(AdminResponse)
 
@@ -176,7 +176,7 @@ func (m *UserModel) RoleList() *AdminResponse {
 	}
 }
 
-func (m *UserModel) DelMean(rq P) *AdminResponse {
+func (m *UserModel) DeleteMenu(rq P) *AdminResponse {
 	_, err := config.GlobalDB.Delete(models.DB_TABLE_AUTH_MAEN, db.DB_PARAMS{"id": rq.Ts().Get("id").ToInt()})
 	if err == nil {
 		return &AdminResponse{
@@ -190,7 +190,7 @@ func (m *UserModel) DelMean(rq P) *AdminResponse {
 	}
 }
 
-func (m *UserModel) HandlerMean(rq P) *AdminResponse {
+func (m *UserModel) SaveMenu(rq P) *AdminResponse {
 	t := rq.Ts()
 	id := t.Get("id").ToInt()
 	rs := new(AdminResponse)
@@ -235,7 +235,7 @@ func (m *UserModel) HandlerMean(rq P) *AdminResponse {
 	return rs
 }
 
-func (m *UserModel) HandlerRole(rq P) *AdminResponse {
+func (m *UserModel) SaveRole(rq P) *AdminResponse {
 	t := rq.Ts()
 	rs := &AdminResponse{}
 	if v := t.Get("role_name").ToString(); v == "" {
@@ -285,7 +285,7 @@ func (m *UserModel) HandlerRole(rq P) *AdminResponse {
 	return rs
 }
 
-func (m *UserModel) AuthRouter() *AdminResponse {
+func (m *UserModel) GetRoleMenuTree() *AdminResponse {
 	list, _ := config.GlobalDB.FetchAll(models.DB_TABLE_AUTH_MAEN, db.DB_PARAMS{}, db.DB_FIELDS{}, " order by weight asc")
 	for k, item := range list {
 		roleList, _ := config.GlobalDB.FetchRows(models.DB_TABLE_ROLE, db.DB_PARAMS{"_": fmt.Sprintf("CONCAT(',', role_ids, ',') like '%%%s%%'", item.Get("id").ToString())}, db.DB_FIELDS{"id"})
@@ -304,7 +304,7 @@ func (m *UserModel) AuthRouter() *AdminResponse {
 	}
 }
 
-func (m *UserModel) MeanRouter() *AdminResponse {
+func (m *UserModel) GetMenuTree() *AdminResponse {
 	list, _ := config.GlobalDB.FetchAll(models.DB_TABLE_AUTH_MAEN, db.DB_PARAMS{}, db.DB_FIELDS{}, "  order by weight asc")
 	var tree utils.TreeTool
 	as := tree.SetTreen(list).GetTree(0, 0)
@@ -314,11 +314,11 @@ func (m *UserModel) MeanRouter() *AdminResponse {
 	}
 }
 
-func (m *UserModel) Sid() string {
+func (m *UserModel) NewSessionID() string {
 	return fmt.Sprintf("w-%s", utils.RandName())
 }
 
-func (m *UserModel) SA(sid string) int {
+func (m *UserModel) GetAdminIDBySession(sid string) int {
 	if uid, err := config.GlobalRedis.GetValue(HASH_BY_LOGIN_ADMIN, sid); err == nil {
 		re := db.DBValue{Value: uid}
 		return re.ToInt()
@@ -326,15 +326,15 @@ func (m *UserModel) SA(sid string) int {
 	return 0
 }
 
-func (m *UserModel) SidInfo(sid string) *AdminInfo {
-	uid := m.SA(sid)
+func (m *UserModel) GetAdminBySession(sid string) *AdminInfo {
+	uid := m.GetAdminIDBySession(sid)
 	if uid == 0 {
 		return nil
 	}
-	return m.Uinfo(uid)
+	return m.GetAdminInfo(uid)
 }
 
-func (m *UserModel) Uinfo(uid int) *AdminInfo {
+func (m *UserModel) GetAdminInfo(uid int) *AdminInfo {
 	rs := new(AdminInfo)
 	one, _ := config.GlobalDB.FetchOne(models.DB_TABLE_ADMIN, db.DB_PARAMS{"id": uid}, db.DB_FIELDS{})
 	if one == nil {

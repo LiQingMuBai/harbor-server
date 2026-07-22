@@ -7,18 +7,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (m *MingingModule) productRoutes() common.MODULEHANDLELIST {
+func (m *MiningModule) productRoutes() common.MODULEHANDLELIST {
 	return common.MODULEHANDLELIST{
-		&common.ModuleHandles{Method: "post", Path: "/mining/list", Handles: common.HandleArray{m.NeedLogin, m.ProductList}},
-		&common.ModuleHandles{Method: "post", Path: "/mining/detail", Handles: common.HandleArray{m.NeedLogin, m.Detail}},
+		&common.ModuleHandles{Method: "post", Path: "/mining/list", Handles: common.HandleArray{m.NeedLogin, m.ListProducts}},
+		&common.ModuleHandles{Method: "post", Path: "/mining/detail", Handles: common.HandleArray{m.NeedLogin, m.GetProductDetail}},
 	}
 }
 
-func (m *MingingModule) ProductList(r *gin.Context) {
+func (m *MiningModule) ListProducts(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MINPRODUCT_LIST)
 }
 
-func (m *MingingModule) Detail(r *gin.Context) {
+func (m *MiningModule) GetProductDetail(r *gin.Context) {
 	pid := m.GetInt(r, "pid")
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_PRODUCT.GetProductInfo(pid))
 }

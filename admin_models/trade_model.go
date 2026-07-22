@@ -14,7 +14,7 @@ type TradeModel struct{}
 /**
  *	开仓信息
  */
-func (m *TradeModel) TradeList(rq P, isAdmin bool, agentCode string) *AdminResponse {
+func (m *TradeModel) ListOpenTrades(rq P, isAdmin bool, agentCode string) *AdminResponse {
 	t := rq.Ts()
 	where := make([]string, 0)
 	if !isAdmin {
@@ -92,7 +92,7 @@ func (m *TradeModel) TradeList(rq P, isAdmin bool, agentCode string) *AdminRespo
 /**
  *	历史平仓
  */
-func (m *TradeModel) HistoryCloseRradeList(rq P, isAdmin bool, agentCode string) *AdminResponse {
+func (m *TradeModel) ListClosedTrades(rq P, isAdmin bool, agentCode string) *AdminResponse {
 	t := rq.Ts()
 	where := make([]string, 0)
 
@@ -166,7 +166,7 @@ func (m *TradeModel) HistoryCloseRradeList(rq P, isAdmin bool, agentCode string)
 	}
 }
 
-func (m *TradeModel) DelegateHistoryDel(id int) *AdminResponse {
+func (m *TradeModel) DeleteDelegateHistory(id int) *AdminResponse {
 	if id == 0 {
 		return &AdminResponse{
 			State: ERROR,
@@ -192,7 +192,7 @@ func (m *TradeModel) DelegateHistoryDel(id int) *AdminResponse {
 	}
 }
 
-func (m *TradeModel) OpSpot(rq P) *AdminResponse {
+func (m *TradeModel) ReviewSpotDelegate(rq P) *AdminResponse {
 	pdata := rq.Ts()
 	if pdata.Get("id").ToInt() == 0 {
 		return &AdminResponse{
@@ -276,7 +276,7 @@ func (m *TradeModel) OpSpot(rq P) *AdminResponse {
 /**
  *	历史委托表
  */
-func (m *TradeModel) HistoryDelegateList(rq P, isAdmin bool, agentCode string) *AdminResponse {
+func (m *TradeModel) ListDelegates(rq P, isAdmin bool, agentCode string) *AdminResponse {
 	t := rq.Ts()
 	where := make([]string, 0)
 
@@ -337,7 +337,7 @@ func (m *TradeModel) HistoryDelegateList(rq P, isAdmin bool, agentCode string) *
 	}
 }
 
-func (m *TradeModel) ManualOperationTrade(uid int, sn string) *AdminResponse {
+func (m *TradeModel) ExecuteManualDelegateTrade(uid int, sn string) *AdminResponse {
 	if sn == "" {
 		return &AdminResponse{
 			State: ERROR,

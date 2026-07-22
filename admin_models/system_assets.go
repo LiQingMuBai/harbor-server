@@ -41,7 +41,7 @@ func (s *SystemModel) OpenAddr(rq P) *AdminResponse {
 	return &AdminResponse{State: ERROR, Data: "修改失败了！"}
 }
 
-func (s *SystemModel) DelWalletAddress(id int) *AdminResponse {
+func (s *SystemModel) DeleteWalletAddress(id int) *AdminResponse {
 	if id == 0 {
 		return &AdminResponse{State: ERROR, Data: "请确认一个要删除的收款信息"}
 	}
@@ -52,7 +52,7 @@ func (s *SystemModel) DelWalletAddress(id int) *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: "删除收款信息成功!"}
 }
 
-func (s *SystemModel) OpWalletAddress(rq P) *AdminResponse {
+func (s *SystemModel) SaveWalletAddress(rq P) *AdminResponse {
 	t := rq.Ts()
 	rs := new(AdminResponse)
 	if v := t.Get("cointype").ToString(); v == "" {
@@ -192,7 +192,7 @@ func (s *SystemModel) CoinDescList(rq P) *AdminResponse {
 	}
 }
 
-func (s *SystemModel) OpCoinDesc(rq P) *AdminResponse {
+func (s *SystemModel) SaveCoinDesc(rq P) *AdminResponse {
 	info := rq.Ts()
 	coininfo := P{
 		"symbol":     info.Get("symbol").ToString(),
@@ -221,7 +221,7 @@ func (s *SystemModel) OpCoinDesc(rq P) *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: "操作币种信息成功!"}
 }
 
-func (s *SystemModel) DelCoinDesc(id int) *AdminResponse {
+func (s *SystemModel) DeleteCoinDesc(id int) *AdminResponse {
 	if id == 0 {
 		return &AdminResponse{State: ERROR, Data: "请确认一个要删除的币种信息"}
 	}
@@ -235,7 +235,7 @@ func (s *SystemModel) DelCoinDesc(id int) *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: "删除币种信息成!"}
 }
 
-func (s *SystemModel) DelCoin(rq P) *AdminResponse {
+func (s *SystemModel) DeleteCoin(rq P) *AdminResponse {
 	id := rq.Ts().Get("id").ToInt()
 	if id == 0 {
 		return &AdminResponse{State: ERROR, Data: "请确认一个要删除的币种信息"}
@@ -247,7 +247,7 @@ func (s *SystemModel) DelCoin(rq P) *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: "删除币种信息成功!"}
 }
 
-func (s *SystemModel) OpCoin(rq P) *AdminResponse {
+func (s *SystemModel) SaveCoin(rq P) *AdminResponse {
 	t := rq.Ts()
 	rs := new(AdminResponse)
 	if v := t.Get("name").ToString(); v == "" {
@@ -333,7 +333,7 @@ func (s *SystemModel) CurrencyList() *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: rs}
 }
 
-func (s *SystemModel) DelCurrency(id string) *AdminResponse {
+func (s *SystemModel) DeleteCurrency(id string) *AdminResponse {
 	if id == "" {
 		return &AdminResponse{State: ERROR, Data: "请确认一个要删除的货币信息"}
 	}
@@ -343,7 +343,7 @@ func (s *SystemModel) DelCurrency(id string) *AdminResponse {
 	return &AdminResponse{State: SUCCESS, Data: "删除货币信息成功!"}
 }
 
-func (s *SystemModel) OpCurrency(rq P) *AdminResponse {
+func (s *SystemModel) SaveCurrency(rq P) *AdminResponse {
 	t := rq.Ts()
 	rs := new(AdminResponse)
 	if v := t.Get("symbol").ToString(); v == "" {

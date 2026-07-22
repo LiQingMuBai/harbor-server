@@ -7,7 +7,7 @@ import (
 
 var moduleUser modules.UserModule
 var moduleTrade modules.TradeModule
-var moduleMining modules.MingingModule
+var moduleMining modules.MiningModule
 var moduleAssets modules.AssetModule
 var moduleMessage modules.MessageModule
 var moduleSystem modules.SystemModule
