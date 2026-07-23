@@ -14,10 +14,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("==================================================")
-	log.Printf("START harbor-server cdn")
-	log.Printf("service=cdn port=%d domain=%s", options.Port, options.Domain)
-	log.Printf("==================================================")
+	utils.ServiceStartupBanner("harbor-server cdn", "service", "cdn", "port", options.Port, "domain", options.Domain)
 	if err := bootstrapcdn.Run(options); err != nil {
 		log.Fatal(err)
 	}
