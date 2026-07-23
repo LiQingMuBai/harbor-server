@@ -88,22 +88,6 @@ go run ./cmd/cdn
 
 ## 工具入口
 
-运维工具也统一收口在 `cmd/tools/*`：
-
-```bash
-go run ./cmd/tools/mongo-init
-go run ./cmd/tools/checkapprove
-go run ./cmd/tools/lucky
-go run ./cmd/tools/recover-kline
-```
-
-### 工具说明
-
-- `mongo-init`：初始化 MongoDB 行情相关集合
-- `checkapprove`：授权检查辅助脚本
-- `lucky`：轻量定时/演示工具
-- `recover-kline`：向 MongoDB 恢复历史 K 线数据
-
 ## 开发命令
 
 全量构建：

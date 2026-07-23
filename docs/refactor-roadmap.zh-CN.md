@@ -22,9 +22,7 @@
 已完成内容：
 
 - 将服务入口统一收口到 `cmd/api`、`cmd/admin`、`cmd/task`、`cmd/wss`、`cmd/cdn`
-- 将工具入口统一收口到 `cmd/tools/*`
 - 删除根目录与历史目录中重复/散落的 wrapper main
-- 收敛多份重复 Mongo 初始化脚本为一份共享实现
 
 收益：
 

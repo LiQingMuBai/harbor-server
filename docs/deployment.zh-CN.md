@@ -157,32 +157,6 @@ go run ./cmd/wss
 go run ./cmd/cdn
 ```
 
-## 8. 工具命令
-
-### 初始化 Mongo 行情集合
-
-```bash
-go run ./cmd/tools/mongo-init
-```
-
-### 授权检查辅助脚本
-
-```bash
-go run ./cmd/tools/checkapprove
-```
-
-### 定时演示工具
-
-```bash
-go run ./cmd/tools/lucky
-```
-
-### 恢复 K 线历史
-
-```bash
-go run ./cmd/tools/recover-kline
-```
-
 ## 9. Docker 部署
 
 当前仓库已经内置以下 Docker 部署文件：

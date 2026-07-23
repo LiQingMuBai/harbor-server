@@ -88,22 +88,6 @@ go run ./cmd/cdn
 
 ## Tool Entrypoints
 
-Maintenance tools are also normalized under `cmd/tools/*`:
-
-```bash
-go run ./cmd/tools/mongo-init
-go run ./cmd/tools/checkapprove
-go run ./cmd/tools/lucky
-go run ./cmd/tools/recover-kline
-```
-
-### Tool Roles
-
-- `mongo-init`: initialize MongoDB collections for market data
-- `checkapprove`: approval-related helper script
-- `lucky`: lightweight timer/demo utility
-- `recover-kline`: recover historical kline data into MongoDB
-
 ## Development
 
 Build everything:
