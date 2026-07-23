@@ -159,24 +159,110 @@ func ServiceStartupBanner(title string, keysAndValues ...interface{}) {
 	sugar := ServiceLogger().Sugar()
 	boxWidth := 86
 	innerWidth := boxWidth - 4
+	avatarWidth := 16
 
 	top := "+" + strings.Repeat("-", boxWidth-2) + "+"
 	bottom := top
-	titleLine := "| " + padRight("START "+title, innerWidth) + " |"
+	serviceID := startupBannerServiceID(keysAndValues...)
+	avatarLines := startupAvatarLines(serviceID)
+	if len(avatarLines) < 3 {
+		avatarLines = []string{"", "", ""}
+	}
+
+	titleText := joinBannerColumns(avatarLines[0], "START "+title, avatarWidth, innerWidth)
+	titleLine := "| " + padRight(titleText, innerWidth) + " |"
 
 	kv := formatKeyValues(keysAndValues...)
-	kvLines := wrapText(kv, innerWidth, 2)
+	kvLines := wrapText(kv, innerWidth-avatarWidth-1, 2)
 	for len(kvLines) < 2 {
 		kvLines = append(kvLines, "")
 	}
-	contentLine1 := "| " + padRight(kvLines[0], innerWidth) + " |"
-	contentLine2 := "| " + padRight(kvLines[1], innerWidth) + " |"
+	contentLine1 := "| " + padRight(joinBannerColumns(avatarLines[1], kvLines[0], avatarWidth, innerWidth), innerWidth) + " |"
+	contentLine2 := "| " + padRight(joinBannerColumns(avatarLines[2], kvLines[1], avatarWidth, innerWidth), innerWidth) + " |"
 
 	sugar.Info(top)
 	sugar.Info(titleLine)
 	sugar.Info(contentLine1)
 	sugar.Info(contentLine2)
 	sugar.Info(bottom)
+}
+
+func startupBannerServiceID(keysAndValues ...interface{}) string {
+	service := ""
+	mode := ""
+	for i := 0; i+1 < len(keysAndValues); i += 2 {
+		key := fmt.Sprint(keysAndValues[i])
+		value := fmt.Sprint(keysAndValues[i+1])
+		switch key {
+		case "service":
+			service = strings.TrimSpace(value)
+		case "mode":
+			mode = strings.TrimSpace(value)
+		}
+	}
+	if service == "task" && mode != "" {
+		return service + "/" + mode
+	}
+	if service != "" {
+		return service
+	}
+	return strings.TrimSpace(GetServiceLogName())
+}
+
+func startupAvatarLines(serviceID string) []string {
+	switch serviceID {
+	case "api":
+		return []string{
+			"   _/\\\\_       ",
+			"  ( o  o )      ",
+			"   /_==_\\\\      ",
+		}
+	case "admin":
+		return []string{
+			"   .-^^-.       ",
+			"  ( -  - )      ",
+			"   | _== |      ",
+		}
+	case "wss":
+		return []string{
+			"   _/~~\\\\_      ",
+			"  ( 0  0 )      ",
+			"   \\\\_==_/      ",
+		}
+	case "task/data":
+		return []string{
+			"   _/::\\\\_      ",
+			"  ( o  ..)      ",
+			"   /_==_\\\\      ",
+		}
+	case "task/jobs":
+		return []string{
+			"   _/##\\\\_      ",
+			"  ( -  oo)      ",
+			"   /_==_\\\\      ",
+		}
+	case "cdn":
+		return []string{
+			"   _/@@\\\\_      ",
+			"  ( ^  ^ )      ",
+			"   \\\\_==_/      ",
+		}
+	default:
+		return []string{
+			"   _/--\\\\_      ",
+			"  ( .  . )      ",
+			"   /_==_\\\\      ",
+		}
+	}
+}
+
+func joinBannerColumns(left string, right string, leftWidth int, totalWidth int) string {
+	left = padRight(left, leftWidth)
+	rightWidth := totalWidth - leftWidth - 1
+	if rightWidth < 0 {
+		rightWidth = 0
+	}
+	return left + " " + padRight(right, rightWidth)
 }
 
 func formatKeyValues(keysAndValues ...interface{}) string {
