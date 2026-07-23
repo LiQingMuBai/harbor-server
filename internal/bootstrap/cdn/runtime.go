@@ -3,6 +3,7 @@ package cdn
 import (
 	"cointrade/internal/bootstrap/shared"
 	"cointrade/utils"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -18,14 +19,18 @@ type Options struct {
 	Domain string
 }
 
-func OptionsFromEnv() Options {
-	return Options{
+func OptionsFromEnv() (Options, error) {
+	options := Options{
 		Port:   shared.GetenvInt("CDN_PORT", 9999),
-		Domain: shared.Getenv("CDN_DOMAIN", "https://www.16168786.xyz/"),
+		Domain: strings.TrimSpace(shared.Getenv("CDN_DOMAIN", "")),
 	}
+	if options.Domain == "" {
+		return Options{}, errors.New("missing CDN_DOMAIN")
+	}
+	return options, nil
 }
 
-func Run(options Options) {
+func Run(options Options) error {
 	router := gin.Default()
 	router.Use(crossDomain)
 	router.POST("/", checkSid, upload(options.Domain))
@@ -35,7 +40,7 @@ func Run(options Options) {
 	router.Static("/static", "./static")
 	router.Static("/pdf", "./pdf")
 	router.Static("/whitepaper", "./whitepaper")
-	router.Run(fmt.Sprintf(":%d", options.Port))
+	return router.Run(fmt.Sprintf(":%d", options.Port))
 }
 
 func crossDomain(r *gin.Context) {

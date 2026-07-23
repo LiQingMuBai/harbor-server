@@ -83,6 +83,32 @@ services:
       retries: 10
       start_period: 10s
 
+  cdn:
+    profiles: ["cdn"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: ./cmd/cdn
+    image: harbor-server:cdn
+    env_file:
+      - ./.env.docker
+    ports:
+      - "${CDN_PORT:-9999}:${CDN_PORT:-9999}"
+    volumes:
+      - ./logs:/app/logs
+      - ./static:/app/static
+      - ./pdf:/app/pdf
+      - ./whitepaper:/app/whitepaper
+    restart: unless-stopped
+    init: true
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 ${CDN_PORT:-9999}"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
   task-jobs:
     build:
       context: .
