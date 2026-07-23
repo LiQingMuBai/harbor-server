@@ -3,8 +3,8 @@ package mongoinit
 import (
 	"cointrade/config"
 	"cointrade/models"
+	"cointrade/utils"
 	"context"
-	"fmt"
 
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -24,7 +24,7 @@ func Run() {
 			klineTableName := coin["pair"] + "_kline_" + period
 			config.GlobalMongo.DBHandle.Collection(klineTableName).Drop(context.TODO())
 			config.GlobalMongo.DBHandle.CreateCollection(context.TODO(), klineTableName, klineHistoryOpts)
-			fmt.Println(klineTableName)
+			utils.ServiceInfo("mongo init kline collection:", klineTableName)
 		}
 
 		mbpTableName := coin["pair"] + "_mbp"
@@ -36,15 +36,15 @@ func Run() {
 		config.GlobalMongo.DBHandle.Collection(mbpTableName + "_sell").Drop(context.TODO())
 		config.GlobalMongo.DBHandle.CreateCollection(context.TODO(), mbpTableName+"_buy", mbpHistoryOpts)
 		config.GlobalMongo.DBHandle.CreateCollection(context.TODO(), mbpTableName+"_sell", mbpHistoryOpts)
-		fmt.Println(mbpTableName)
+		utils.ServiceInfo("mongo init mbp collection:", mbpTableName)
 
 		tradeDetailTableName := coin["pair"] + "_tradedetail"
 		config.GlobalMongo.DBHandle.Collection(tradeDetailTableName + "_buy").Drop(context.TODO())
 		config.GlobalMongo.DBHandle.Collection(tradeDetailTableName + "_sell").Drop(context.TODO())
 		config.GlobalMongo.DBHandle.CreateCollection(context.TODO(), tradeDetailTableName+"_buy", mbpHistoryOpts)
 		config.GlobalMongo.DBHandle.CreateCollection(context.TODO(), tradeDetailTableName+"_sell", mbpHistoryOpts)
-		fmt.Println(tradeDetailTableName)
+		utils.ServiceInfo("mongo init trade detail collection:", tradeDetailTableName)
 	}
 
-	fmt.Println("mongo init over...")
+	utils.ServiceInfo("mongo init over")
 }

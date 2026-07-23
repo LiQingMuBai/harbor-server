@@ -25,6 +25,11 @@ func (m *TradeModel) MakeSn(uid int, t int) string {
 func (m *TradeModel) DelegateTrade(uid int, rq *TradeDelegateRequest) *BaseResponse {
 	rs := new(BaseResponse)
 	uinfo := MODEL_USER.GetBaseInfo(uid)
+	if uinfo == nil {
+		rs.State = STATE_SYSTEM_ERROR
+		rs.Msg = "system error"
+		return rs
+	}
 	ntime := utils.GetNow()
 	uCredit := uinfo.Credit
 	if rq.GangGan < 1 {
@@ -39,11 +44,6 @@ func (m *TradeModel) DelegateTrade(uid int, rq *TradeDelegateRequest) *BaseRespo
 	var teamLogInfo QueueTeamLog
 	if uinfo.Mode == USER_MODE_V {
 		uCredit = uinfo.VCredit
-	}
-	if uinfo == nil {
-		rs.State = STATE_SYSTEM_ERROR
-		rs.Msg = "system error"
-		return rs
 	}
 	if rq.OpenType != OPEN_TYPE_BB && rq.OpenType != OPEN_TYPE_EXPLODE && rq.OpenType != OPEN_TYPE_KEEP {
 		rs.State = STATE_SYSTEM_ERROR
@@ -92,7 +92,7 @@ func (m *TradeModel) DelegateTrade(uid int, rq *TradeDelegateRequest) *BaseRespo
 		"stop_up_delegate":   rq.StopUpDelegatePrice,
 		"stop_down_delegate": rq.StopDownDelegatePrice,
 	}
-	coinprice := coinPriceInfo["close"].(float64)
+	coinprice := utils.GetFloat(utils.GetJsonValue(coinPriceInfo["close"]))
 
 	if rq.PriceType != PRICE_TYPE_MARKET && rq.OpenType != OPEN_TYPE_EXPLODE {
 		coinprice = utils.FormatFloatA(rq.Price, utils.GetInt(coinfo["dnum"]))
@@ -189,6 +189,11 @@ func (m *TradeModel) DelegateTrade(uid int, rq *TradeDelegateRequest) *BaseRespo
 			var one *OpenedInfo
 			if rq.Sn != "" {
 				one = m.GetOpendBySn(uid, rq.Sn)
+				if one == nil {
+					rs.State = DELEGATE_STATE_NOCOIN
+					rs.Msg = "no this assets"
+					return rs
+				}
 				if one.Ganggan <= 1 {
 					rs.State = STATE_FAILD
 					rs.Msg = "not a ganggan trade"

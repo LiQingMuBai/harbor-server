@@ -20,21 +20,92 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/wxnacy/wgo/arrays"
 )
 
-const (
-	DEBUGMODE = 1
-
+var (
+	DEBUGMODE       = 1
 	PAGE_LIMIT_SIZE = 20
+
+	utilsEnvOnce sync.Once
 )
 
-func Log(v ...interface{}) {
-	if DEBUGMODE == 1 {
-		fmt.Println(v...)
+func init() {
+	loadRuntimeEnv()
+}
+
+func loadRuntimeEnv() {
+	utilsEnvOnce.Do(func() {
+		loadDotEnvFile()
+		DEBUGMODE = getEnvInt("DEBUGMODE", DEBUGMODE)
+		PAGE_LIMIT_SIZE = getEnvInt("PAGE_LIMIT_SIZE", PAGE_LIMIT_SIZE)
+	})
+}
+
+func loadDotEnvFile() {
+	candidates := []string{
+		".env",
+		"../.env",
+		"../../.env",
 	}
+	if envPath := strings.TrimSpace(os.Getenv("APP_ENV_FILE")); envPath != "" {
+		candidates = append([]string{envPath}, candidates...)
+	}
+	for _, path := range candidates {
+		content, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		parseDotEnvLines(content)
+		return
+	}
+}
+
+func parseDotEnvLines(content []byte) {
+	scanner := bufio.NewScanner(strings.NewReader(string(content)))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		line = strings.TrimPrefix(line, "export ")
+		index := strings.Index(line, "=")
+		if index <= 0 {
+			continue
+		}
+		key := strings.TrimSpace(line[:index])
+		value := strings.Trim(strings.TrimSpace(line[index+1:]), `"'`)
+		if key == "" {
+			continue
+		}
+		if _, exists := os.LookupEnv(key); exists {
+			continue
+		}
+		_ = os.Setenv(key, value)
+	}
+}
+
+func getEnvInt(key string, defaultValue int) int {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return defaultValue
+	}
+	number, err := strconv.Atoi(value)
+	if err != nil {
+		return defaultValue
+	}
+	return number
+}
+
+func Log(v ...interface{}) {
+	loadRuntimeEnv()
+	if DEBUGMODE != 1 {
+		return
+	}
+	ServiceInfo(v...)
 }
 func FormatFloatA(v float64, n int) float64 {
 	s := fmt.Sprintf("%."+strconv.Itoa(n)+"f", v)
@@ -44,7 +115,7 @@ func WriteLog(filePath string, text interface{}) {
 
 	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		fmt.Println("文件打开失败", err)
+		ServiceError("open log file failed:", err)
 		return
 	}
 	//及时关闭file句柄
@@ -233,12 +304,12 @@ func SendToMail(user, password, host, to, subject, body, mailtype string) error 
 	msg += "\r\n" + body
 	conn, err := tls.Dial("tcp", host, &tls.Config{})
 	if err != nil {
-		fmt.Println("312321321")
+		ServiceError("smtp tls dial failed:", err)
 		return err
 	}
 	co, err := smtp.NewClient(conn, hs[0])
 	if err != nil {
-		fmt.Println("adasdasdas")
+		ServiceError("smtp client create failed:", err)
 		return err
 	}
 	defer co.Close()
@@ -439,6 +510,7 @@ func In(target string, str_array []string) bool {
 }
 
 func Limit(p ...int) string {
+	loadRuntimeEnv()
 	page := p[0]
 	limit := PAGE_LIMIT_SIZE
 	if len(p) > 1 && p[1] > 0 {

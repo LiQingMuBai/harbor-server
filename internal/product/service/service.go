@@ -109,6 +109,11 @@ func (s *Service) Buy(uid int, rq *productdomain.BuyRequest) *shareddomain.BaseR
 	pinfo := s.GetProductInfo(rq.Pid)
 
 	rs := new(shareddomain.BaseResponse)
+	if uinfo == nil {
+		rs.State = stateSystemError
+		rs.Msg = "system error"
+		return rs
+	}
 	if pinfo == nil {
 		rs.State = stateSystemError
 		rs.Msg = "no this product"

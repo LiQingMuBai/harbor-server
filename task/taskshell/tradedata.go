@@ -9,7 +9,6 @@ import (
 	"compress/gzip"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"strings"
@@ -48,7 +47,7 @@ func Connect() *websocket.Conn {
 	dailer := websocket.Dialer{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	so, _, err := dailer.Dial(HUOBI_WS, nil)
 	if err != nil {
-		fmt.Println(err.Error())
+		utils.ServiceError("trade websocket dial failed:", err)
 		return nil
 	}
 	id := utils.Md5(utils.RandName())
@@ -71,7 +70,7 @@ func Connect() *websocket.Conn {
 			LOCK.Unlock()
 			time.Sleep(100 * time.Millisecond)
 			if err != nil {
-				fmt.Println("send sub error:", err.Error())
+				utils.ServiceError("trade subscribe failed:", err)
 			}
 
 		}
@@ -110,7 +109,7 @@ func reconnectTradeSocket() *websocket.Conn {
 		if so != nil {
 			return so
 		}
-		fmt.Println("reconnecting.....")
+		utils.ServiceWarn("trade websocket reconnecting")
 		time.Sleep(3 * time.Second)
 	}
 }
@@ -131,7 +130,7 @@ func ReciveFunc(so *websocket.Conn) {
 		buf, e = ioutil.ReadAll(greader)
 		greader.Close()
 		if e != nil {
-			fmt.Println(e.Error())
+			utils.ServiceError("trade websocket read gzip failed:", e)
 			continue
 		} else {
 			//message := string(buf)
@@ -200,7 +199,7 @@ func GetTicks(mp *config.MConfig, pair string) { //处理行情数据
 	config.GlobalMongo.FindAndReplace("lastdata", insertData, bson.M{"pair": pair})
 	//fmt.Println("insert result:", rs)
 
-	utils.Log(insertData)
+	utils.ServiceInfo("trade ticker updated:", insertData)
 }
 
 func GetMbp(mp *config.MConfig, pair string) {
@@ -339,7 +338,7 @@ func GetTradeDetail(mp *config.MConfig, pair string) {
 		}
 		insertData["pair"] = strings.TrimSpace(pair)
 		config.GlobalMongo.InsertData(pair+"_tradedetail_"+insertData["direction"].(string), insertData)
-		utils.Log(insertData)
+		utils.ServiceInfo("trade detail inserted:", insertData)
 	}
 
 }

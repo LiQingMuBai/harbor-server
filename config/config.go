@@ -5,7 +5,6 @@ import (
 	"cointrade/lib/redis"
 	"cointrade/utils"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"reflect"
@@ -175,7 +174,7 @@ func GetSettingConfig() {
 			if err == nil {
 				json.Unmarshal(str, &SYSTEM_CONFIG)
 			} else {
-				fmt.Println("GetSettingConfig", err)
+				utils.ServiceError("get setting config marshal failed:", err)
 			}
 		}
 		for db_k, c_v := range configdata {
@@ -184,7 +183,7 @@ func GetSettingConfig() {
 			}
 		}
 	} else {
-		fmt.Println("err", err.Error())
+		utils.ServiceError("fetch setting config failed:", err)
 	}
 }
 

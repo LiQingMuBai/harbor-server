@@ -3,7 +3,6 @@ package redis
 import (
 	"cointrade/utils"
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -71,17 +70,17 @@ func (r *Redis) SetValue(hashname string, key string, value interface{}) *redis.
 	b := r.conn.HSet(hashname, key, string(jsonstr))
 	_, err := b.Result()
 	if err != nil {
-		utils.Log("redis error:", err.Error())
+		utils.ServiceError("redis hset error:", err)
 	}
 	return b
 }
 
 func (r *Redis) KeppConnect() {
 	if str, _ := r.conn.Ping().Result(); str != "PONG" {
-		fmt.Println("重连...")
+		utils.ServiceWarn("redis reconnecting")
 		r.Connect()
 	} else {
-		fmt.Println("  链接状态！", str)
+		utils.ServiceInfo("redis ping state:", str)
 	}
 }
 
@@ -94,7 +93,7 @@ func (r *Redis) GetValue(hashname string, key string) (interface{}, error) { //�
 	b := r.conn.HGet(hashname, key)
 	str := b.Val()
 	var obj interface{}
-	fmt.Println(" str 的取值为", key, "===============>", str)
+	utils.ServiceInfo("redis hget value:", key, str)
 	err := json.Unmarshal([]byte(str), &obj)
 	if err != nil {
 		return str, err
@@ -116,7 +115,7 @@ func (r *Redis) PushQueue(hasname string, value interface{}) { //推入队列
 	cmd := r.conn.RPush(hasname, string(jsonstr))
 	_, err := cmd.Result()
 	if err != nil {
-		utils.Log("redis error:", err.Error())
+		utils.ServiceError("redis rpush error:", err)
 	}
 }
 

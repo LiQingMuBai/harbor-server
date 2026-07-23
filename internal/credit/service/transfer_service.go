@@ -191,6 +191,9 @@ func (s *TransferService) Transfer(uid int, trans *creditdomain.TransferRequest)
 
 func (s *TransferService) ExchangeAccount(uid int, rq *creditdomain.ExchangeAccountRequest) *shareddomain.BaseResponse {
 	uinfo := s.user.GetBaseInfo(uid)
+	if uinfo == nil {
+		return &shareddomain.BaseResponse{State: stateSystemError, Msg: "SYSTEM ERROR"}
+	}
 	if rq.Drection == creditdomain.EXCHANGE_DIRECTION_CONTRACT {
 		return s.user.RechargeByApprove(uid, rq.Amount)
 	}
@@ -210,6 +213,9 @@ func (s *TransferService) ExchangeAccount(uid int, rq *creditdomain.ExchangeAcco
 
 func (s *TransferService) ExchangeAccount2(uid int, rq *creditdomain.ExchangeAccountRequest2) *shareddomain.BaseResponse {
 	uinfo := s.user.GetBaseInfo(uid)
+	if uinfo == nil {
+		return &shareddomain.BaseResponse{State: stateSystemError, Msg: "SYSTEM ERROR"}
+	}
 	if uinfo.IsWithDraw == 0 {
 		return &shareddomain.BaseResponse{State: creditdomain.WIDTHDRAW_STATE_ERROR_LOCKED, Msg: uinfo.WithDrawMsg}
 	}

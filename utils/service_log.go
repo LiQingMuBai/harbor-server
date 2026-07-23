@@ -1,18 +1,22 @@
 package utils
 
 import (
-	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var (
 	serviceLogMu   sync.RWMutex
 	serviceLogName = "default"
 	runtimeLogFile *os.File
+	serviceLogger  *zap.Logger
+	stdLogUndo     func()
 )
 
 func normalizeServiceLogName(name string) string {
@@ -74,15 +78,76 @@ func SetupServiceLogger(name string) error {
 	}
 
 	serviceLogMu.Lock()
+	if serviceLogger != nil {
+		_ = serviceLogger.Sync()
+	}
+	if stdLogUndo != nil {
+		stdLogUndo()
+		stdLogUndo = nil
+	}
 	if runtimeLogFile != nil {
 		_ = runtimeLogFile.Close()
 	}
 	runtimeLogFile = file
+	serviceLogger = newServiceLogger(file)
+	stdLogUndo = zap.RedirectStdLog(serviceLogger)
 	serviceLogMu.Unlock()
 
-	log.SetOutput(io.MultiWriter(os.Stdout, file))
-	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+	log.SetFlags(0)
 	return nil
+}
+
+func newServiceLogger(file *os.File) *zap.Logger {
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoderConfig.TimeKey = "time"
+	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	encoderConfig.EncodeDuration = zapcore.StringDurationEncoder
+	encoderConfig.EncodeLevel = zapcore.LowercaseLevelEncoder
+
+	writeSyncer := zapcore.NewMultiWriteSyncer(
+		zapcore.AddSync(os.Stdout),
+		zapcore.AddSync(file),
+	)
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(encoderConfig),
+		writeSyncer,
+		zap.InfoLevel,
+	)
+	return zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+}
+
+func ServiceLogger() *zap.Logger {
+	serviceLogMu.RLock()
+	logger := serviceLogger
+	serviceLogMu.RUnlock()
+	if logger != nil {
+		return logger
+	}
+	return zap.NewNop()
+}
+
+func ServiceInfo(args ...interface{}) {
+	ServiceLogger().Sugar().Info(args...)
+}
+
+func ServiceWarn(args ...interface{}) {
+	ServiceLogger().Sugar().Warn(args...)
+}
+
+func ServiceError(args ...interface{}) {
+	ServiceLogger().Sugar().Error(args...)
+}
+
+func ServiceInfof(template string, args ...interface{}) {
+	ServiceLogger().Sugar().Infof(template, args...)
+}
+
+func ServiceWarnf(template string, args ...interface{}) {
+	ServiceLogger().Sugar().Warnf(template, args...)
+}
+
+func ServiceErrorf(template string, args ...interface{}) {
+	ServiceLogger().Sugar().Errorf(template, args...)
 }
 
 func AppendServiceLog(filename string, text string) error {

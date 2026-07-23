@@ -143,7 +143,8 @@ func (m *UserModel) Register(rq *RegisterRequest) *BaseResponse { //注册
 	}
 	registerQueue := map[string]interface{}{"uid": id, "invite_order": insertData["parent_order"]}
 	if channelID, ok := insertData["channel_id"]; ok {
-		if channelID.(int) > 0 {
+		channelIDInt := utils.GetInt(utils.GetJsonValue(channelID))
+		if channelIDInt > 0 {
 			registerQueue["channel_id"] = channelID
 			registerQueue["channel_level"] = insertData["channel_level"]
 		}

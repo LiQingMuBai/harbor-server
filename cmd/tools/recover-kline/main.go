@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"cointrade/utils"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -31,6 +32,9 @@ type KlineRecordData struct {
 }
 
 func main() {
+	if err := utils.SetupServiceLogger("tools/recover-kline"); err != nil {
+		log.Fatal(err)
+	}
 	mongoURI := strings.TrimSpace(os.Getenv("RECOVER_MONGO_URI"))
 	if mongoURI == "" {
 		mongoURI = strings.TrimSpace(os.Getenv("MONGO_URI"))
@@ -50,7 +54,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Connected to MongoDB!")
+	utils.ServiceInfo("connected to mongodb")
 	pairs := []string{"btcusdt", "ethusdt", "xrpusdt", "solusdt", "adausdt", "zecusdt", "usdcusdt", "trxusdt", "dogeusdt", "shibusdt", "linkusdt", "bchusdt", "pepeusdt", "ltcusdt", "suiusdt", "uniusdt", "bnbusdt"}
 	periods := []string{"1min", "5min", "15min", "30min", "60min", "4hour", "1day", "1mon", "1week", "1year"}
 
@@ -62,7 +66,7 @@ func main() {
 			client.Database(databaseName)
 			err := client.Database(databaseName).Collection(table).Drop(context.TODO())
 			if err != nil {
-				log.Println("删除table失败", table)
+				utils.ServiceWarn("drop table failed:", table)
 				return
 			}
 
@@ -83,23 +87,13 @@ func main() {
 				addRecord.Amount = record.Amount
 				addRecord.Ts = record.ID * 1000
 
-				log.Println("id", addRecord.ID)
-				log.Println("Amount", addRecord.Amount)
-				log.Println("Vol", addRecord.Vol)
-				log.Println("Count", addRecord.Count)
-				log.Println("Open", addRecord.Open)
-				log.Println("Close", addRecord.Close)
-				log.Println("High", addRecord.High)
-				log.Println("Low", addRecord.Low)
-				log.Println("Pair", addRecord.Pair)
-				log.Println("Period", addRecord.Period)
-				log.Println("Ts", addRecord.Ts)
+				utils.ServiceInfo("recover kline record:", addRecord)
 
 				insertResult, err := collection.InsertOne(context.TODO(), addRecord)
 				if err != nil {
 					log.Fatal(err)
 				}
-				fmt.Println("Inserted a single document: ", insertResult.InsertedID)
+				utils.ServiceInfo("inserted single document:", insertResult.InsertedID)
 			}
 			time.Sleep(100 * time.Nanosecond)
 		}
@@ -109,7 +103,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Connection to MongoDB closed.")
+	utils.ServiceInfo("mongodb connection closed")
 }
 
 func CreateId(ntime int, t string, last ...int) int {
@@ -192,12 +186,11 @@ func GetHistoryData(pair, period string) []KilineDataDetail {
 }
 
 func GetHistorySymbol(pair string, period string) []KilineDataDetail {
-	log.Println(">>>>>>>>>>>>>>>>>GetHistorySymbol<<<<<<<<<<<<<<")
-	fmt.Printf("pair: %s, period: %s\n", pair, period)
+	utils.ServiceInfof("get history symbol pair=%s period=%s", pair, period)
 	url := fmt.Sprintf(huobiAPIHTTPURL+"/market/history/kline?period=%s&size=500&symbol=%s", period, pair)
 	rq, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Println("network dial...")
+		utils.ServiceWarn("network dial failed when building request")
 	}
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -206,39 +199,23 @@ func GetHistorySymbol(pair string, period string) []KilineDataDetail {
 	c.Transport = tr
 	resp, err := c.Do(rq)
 	if err != nil {
-		fmt.Printf(" %+v \n", err.Error())
+		utils.ServiceError("history request failed:", err)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		fmt.Println("出错了===>", pair, "|", period)
+		utils.ServiceError("read history body failed:", pair, period, err)
 	}
-
-	fmt.Println(string(body))
 
 	var response KlineData
 	json.Unmarshal([]byte(string(body)), &response)
-
-	fmt.Println(response.Ch)
-	fmt.Println(response.Ts)
-	fmt.Println(response.Status)
-
-	log.Println("====================开始====================")
+	utils.ServiceInfo("history response meta:", response.Ch, response.Ts, response.Status)
 
 	for _, result := range response.Data {
-		log.Println("open", result.Open)
-		log.Println("close", result.Close)
-		log.Println("id", result.ID)
-		log.Println("amount", result.Amount)
-		log.Println("high", result.High)
-		log.Println("low", result.Low)
-		log.Println("count", result.Count)
-		log.Println("vol", result.Vol)
+		utils.ServiceInfo("history detail:", result)
 	}
-	log.Println(len(response.Data))
-
-	log.Println("=====================结束====================")
+	utils.ServiceInfo("history response count:", len(response.Data))
 
 	return response.Data
 }

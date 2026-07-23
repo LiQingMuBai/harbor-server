@@ -189,7 +189,7 @@ func TransResultCollect(erc *lib.EthLib) {
 		//归集交易扫描
 		list, _ := config.GlobalDB.FetchAll(models.DB_TABLE_COLLECT_LOG, db.DB_PARAMS{"state": 0}, db.DB_FIELDS{})
 		for _, v := range list {
-			fmt.Println("TransResultCollect", v["txid"].ToString())
+			utils.ServiceInfo("trans result collect:", v["txid"].ToString())
 			now := utils.GetNow()
 			if v["scantime"].ToInt() > 0 && now-v["scantime"].ToInt() > 10*60 { //10分钟得不到正确的结果就设置为失败
 				config.GlobalDB.UpdateData(models.DB_TABLE_COLLECT_LOG, db.DB_PARAMS{"state": 2}, db.DB_PARAMS{"id": v["id"].ToInt()})

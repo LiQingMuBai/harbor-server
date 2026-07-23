@@ -229,7 +229,7 @@ func (h *TronHelper) ParasTransFromBlock(ts []*api.TransactionExtention) []*Tran
 				tmp.Amount = float64(info[1].(int64)) / math.Pow10(6)
 				tmp.ToAddress = info[0].(string)
 				//utils.Log(tmp.Hex)
-				if tmp.ToAddress[0] != 'T' {
+				if tmp.ToAddress == "" || tmp.ToAddress[0] != 'T' {
 					utils.Log(tmp.Hex)
 				}
 				translist = append(translist, tmp)
@@ -416,7 +416,7 @@ func (h *TronHelper) GetBanlance(address string) map[string]float64 {
 		return nil
 	}
 	arr := mp["data"].Array()
-	if arr == nil {
+	if len(arr) == 0 {
 		return nil
 	}
 	mp_b := arr[0].Map()
@@ -620,7 +620,7 @@ func (h *TronHelper) DecodeAbi(s string) []interface{} {
 
 	a := address.HexToAddress(p1_s).String()
 	//utils.Log(a)
-	if a[0] != 'T' {
+	if a == "" || a[0] != 'T' {
 		utils.Log(s)
 		utils.Log(p1_s)
 		utils.Log(a)

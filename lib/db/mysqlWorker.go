@@ -158,7 +158,11 @@ func (db *MysqlWorker) JoinCount(tablename string, jointable string, on string, 
 	sql := fmt.Sprintf("SELECT %s FROM %s %s  %s ON %s  %s %s", "COUNT(*) as _total", tablename, join_str, jointable, on, where, ord)
 	rows, err := db.GetResult(sql)
 	if err == nil {
-		n, _ := strconv.Atoi(GetRecords(rows)[0]["_total"])
+		records := GetRecords(rows)
+		if len(records) == 0 {
+			return 0
+		}
+		n, _ := strconv.Atoi(records[0]["_total"])
 		return n
 	}
 	return 0

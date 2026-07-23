@@ -85,7 +85,7 @@ func (s *Notify) NewMsg(msg db.DB_PARAMS) {
 		return
 	}
 	if uid, ok := msg["uid"]; !ok {
-		fmt.Println("uid 错误 无法添加")
+		utils.ServiceError("notify uid missing, cannot add")
 		return
 	} else {
 		ServiceMsg.Uid = uid.(int)
@@ -99,10 +99,10 @@ func (s *Notify) NewMsg(msg db.DB_PARAMS) {
 		c := fmt.Sprintf("%v", content)
 		if err := json.Unmarshal([]byte(c), ServiceMsg); err == nil {
 			if err != nil {
-				fmt.Println("error", err)
+				utils.ServiceError("notify content unmarshal failed:", err)
 			}
 		} else {
-			fmt.Println("content 错误 ", err)
+			utils.ServiceError("notify content invalid:", err)
 		}
 	}
 	key := utils.Md5(fmt.Sprintf("%d", ServiceMsg.Uid))

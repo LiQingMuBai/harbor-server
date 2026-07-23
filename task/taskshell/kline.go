@@ -59,7 +59,7 @@ func connect() *websocket.Conn {
 	dailer := websocket.Dialer{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	so, _, err := dailer.Dial(HUOBI_WS, nil)
 	if err != nil {
-		fmt.Println(err.Error())
+		utils.ServiceError("kline websocket dial failed:", err)
 		return nil
 	}
 	go func() {
@@ -81,7 +81,7 @@ func connect() *websocket.Conn {
 				_ = so.WriteJSON(RequestStruct{Sub: "market." + pair + ".kline." + strings.TrimSpace(p), Id: id}) //订阅k线数据
 				time.Sleep(100 * time.Millisecond)
 				if err != nil {
-					fmt.Println("send sub error:", err.Error())
+					utils.ServiceError("kline subscribe failed:", err)
 				}
 			}
 
@@ -113,7 +113,7 @@ func GetKine() {
 		for {
 			_, buf, e := so.ReadMessage()
 			if e != nil {
-				fmt.Println(e.Error())
+				utils.ServiceError("kline websocket read failed:", e)
 				time.Sleep(3 * time.Second)
 				so = connect()
 				continue
@@ -126,7 +126,7 @@ func GetKine() {
 			greader.Close()
 			buf, e = ioutil.ReadAll(greader)
 			if e != nil {
-				fmt.Println(e.Error())
+				utils.ServiceError("kline gzip read failed:", e)
 				continue
 			} else {
 				//message := string(buf)
@@ -205,7 +205,7 @@ func GetKlineData(mp *config.MConfig, pair string, t string, a ...int) {
 	}
 	controllerPrice := config.GlobalMongo.GetOne("kline_control", bson.M{"pair": pair, "timemap": ntime}, bson.M{})
 	if controllerPrice != nil && coininfo["is_f"] == "1" {
-		fmt.Println("获取控制行情", controllerPrice["pair"], "控制价格", controllerPrice["price"])
+		utils.ServiceInfo("apply controller price:", controllerPrice["pair"], controllerPrice["price"])
 		//if price, o := pricemap[ntime]; o && price > 0 {
 		insertData["close"] = utils.FormatFloatA(utils.GetFloat(fmt.Sprintf("%v", controllerPrice["price"])), utils.GetInt(CoinInfoMap[pair]["dnum"]))
 		f_price := insertData["close"].(float64)
@@ -282,7 +282,7 @@ func RecoverKline2() {
 						lastklineinfo["open"] = 0.30
 					}
 					lastklineinfo["vol"] = float64(1000+rand.Intn(3000)) * lastklineinfo["close"].(float64)
-					fmt.Println(lastklineinfo)
+					utils.ServiceInfo("recover kline adjusted:", lastklineinfo)
 					config.GlobalMongo.FindAndReplace("mkdusdt_kline_"+v, lastklineinfo, bson.D{{"id", id}, {"pair", "mkdusdt"}, {"period", v}})
 
 				}
@@ -298,7 +298,7 @@ func RecoverKline2() {
 		lastklineinfo := config.GlobalMongo.GetOne("mkdusdt_kline_"+v, bson.D{{"pair", "mkdusdt"}, {"period", v}}, bson.M{"id": -1})
 		config.GlobalMongo.FindAndReplace("lastkline", map[string]interface{}{"id": lastklineinfo["id"], "close": lastklineinfo["close"], "open": lastklineinfo["open"], "high": lastklineinfo["high"], "low": lastklineinfo["low"]}, bson.M{"pair": "mkdusdt", "period": v})
 	}
-	fmt.Println("over")
+	utils.ServiceInfo("recover kline completed")
 
 }
 func RecoverCoinKline(pair string, starttime int, endtime int) {
@@ -327,7 +327,7 @@ func RecoverCoinKline(pair string, starttime int, endtime int) {
 		rn := 1 + r.Intn(100) //双随机比较 主要破掉大数定理
 		//rb = 70
 		float_rate := float64(10+rand.Intn(int(heart*100))) / float64(10000) //震荡幅度控制在%1以内 最低0.1%
-		fmt.Println("up_rate:", up_rate, "rn:", rn)
+		utils.ServiceInfo("recover coin kline params:", "up_rate", up_rate, "rn", rn)
 		if rn > up_rate {
 			flag = -1
 		}
@@ -375,7 +375,7 @@ func RecoverCoinKline(pair string, starttime int, endtime int) {
 				insertData["high"] = utils.FormatFloatA(high, utils.GetInt(coin["dnum"]))
 				insertData["low"] = utils.FormatFloatA(low, utils.GetInt(coin["dnum"]))
 				insertData["vol"] = float64(insertData["count"].(int)) * start_price
-				fmt.Println(insertData)
+				utils.ServiceInfo("recover coin kline inserted:", insertData)
 				//config.GlobalMongo.FindAndReplace("lastkline", insertData, bson.M{"pair": pair, "period": v})
 				config.GlobalMongo.FindAndReplace(pair+"_kline_"+v, insertData, bson.D{{"id", id}, {"pair", pair}, {"period", v}})
 			} else {
@@ -424,11 +424,11 @@ func RecoverCoinKline(pair string, starttime int, endtime int) {
 func CreateCoinKline(pair string) {
 	coin, ok := CoinInfoMap[pair]
 	var KlineConfig models.CoinKlineConfig
-	fmt.Println(coin)
+	utils.ServiceInfo("create coin kline start:", pair, coin)
 	if !ok {
 		return
 	}
-	fmt.Println("=============>", coin)
+	utils.ServiceInfo("create coin kline loaded:", pair, coin)
 
 	start_price := utils.GetFloat(coin["f_price"])
 	heart := 1.0
@@ -447,7 +447,7 @@ func CreateCoinKline(pair string) {
 
 		coin = CoinInfoMap[pair]
 		err := json.Unmarshal([]byte(coin["kline_config"]), &KlineConfig)
-		fmt.Println(KlineConfig)
+		utils.ServiceInfo("coin kline config:", pair, KlineConfig)
 
 		if err == nil {
 			if KlineConfig.MaxPrice <= 0 || KlineConfig.MinPrice <= 0 {
@@ -468,7 +468,7 @@ func CreateCoinKline(pair string) {
 		}*/
 		keeppriceInfo := config.GlobalMongo.GetOne("lastkline", bson.M{"pair": pair, "period": "1day"}, nil)
 		if start_price <= 0 {
-			fmt.Println("system error")
+			utils.ServiceError("coin kline invalid start price:", pair)
 			continue
 		}
 
@@ -481,13 +481,13 @@ func CreateCoinKline(pair string) {
 			//rand.Seed(time.Now().UnixMicro()) //
 			rn := 1 + rand.Intn(100) //双随机比较 主要破掉大数定理
 			//rb = 70
-			fmt.Println("up_rate:", up_rate)
+			utils.ServiceInfo("coin kline up rate:", pair, up_rate)
 			if rn > up_rate {
 				flag = -1
 			}
 			start_price = last_price + open_price*float64(flag)*float_rate //生成当前close价格
 			if start_price <= 0 {
-				fmt.Println("system error")
+				utils.ServiceError("coin kline generated invalid price:", pair)
 				continue
 			}
 			//要控制涨跌幅不能大于开盘价的20%
@@ -530,7 +530,7 @@ func CreateCoinKline(pair string) {
 				if insertData["open"].(float64) == 0 || insertData["close"].(float64) == 0 {
 					break
 				}
-				fmt.Println(insertData)
+				utils.ServiceInfo("coin kline initialized:", insertData)
 				config.GlobalMongo.FindAndReplace("lastkline", insertData, bson.M{"pair": pair, "period": v})
 				config.GlobalMongo.FindAndReplace(pair+"_kline_"+v, insertData, bson.D{{"id", float64(CreateId(ntime, v))}, {"pair", pair}, {"period", v}})
 			} else {
@@ -577,7 +577,7 @@ func CreateCoinKline(pair string) {
 				insertData["vol"] = float64(count) * start_price
 				controllerPrice := config.GlobalMongo.GetOne("kline_control", bson.M{"pair": pair, "timemap": ntime}, bson.M{})
 				if controllerPrice != nil {
-					fmt.Println("获取控制行情", controllerPrice["pair"], "控制价格", controllerPrice["price"])
+					utils.ServiceInfo("apply kline controller price:", controllerPrice["pair"], controllerPrice["price"])
 					//if price, o := pricemap[ntime]; o && price > 0 {
 					insertData["close"] = utils.FormatFloatA(utils.GetFloat(fmt.Sprintf("%v", controllerPrice["price"])), utils.GetInt(CoinInfoMap[pair]["dnum"]))
 					f_price := insertData["close"].(float64)
@@ -722,12 +722,12 @@ func ControllerKlineQueue() {
 		}
 		for _, item := range contro_list {
 			if b, err := json.Marshal(item); err != nil {
-				fmt.Println("解析控制失败......")
+				utils.ServiceError("marshal kline controller failed:", err)
 				continue
 			} else {
 				data := make(adminservice.P, 0)
 				if err = json.Unmarshal(b, &data); err != nil {
-					fmt.Println("任务解析失败， 跳过!")
+					utils.ServiceError("unmarshal kline controller task failed:", err)
 					continue
 				}
 
@@ -738,7 +738,7 @@ func ControllerKlineQueue() {
 					config.GlobalMongo.DBHandle.Collection("kline_control").DeleteMany(context.TODO(), bson.M{"sn": re.Get("sn").ToString()})
 					continue
 				}
-				fmt.Println("获取控制", re.Get("pair").ToString())
+				utils.ServiceInfo("processing kline controller:", re.Get("pair").ToString())
 
 				if re.Get("startime").ToInt() > utils.GetNow() { //如果未到时间休息2s
 					//fmt.Println("未开始.....")

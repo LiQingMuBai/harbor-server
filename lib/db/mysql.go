@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math"
 
 	"strconv"
@@ -50,7 +51,7 @@ func (conn *Mysql) SetNames() error {
 }
 func (conn *Mysql) Execute(sql string) (sql.Result, error) {
 	if DEBUG == 1 {
-		fmt.Println(sql)
+		log.Printf("mysql exec sql: %s", sql)
 	}
 	//println(sql)
 	return conn.db.Exec(sql)
@@ -104,7 +105,7 @@ func (conn *Mysql) UpdateData(tablename string, params map[string]interface{}, c
 	if len(condition) > 0 {
 		sql = fmt.Sprintf("update %s set %s where %s", tablename, partstr, conn.paraseConditionParams(condition))
 	}
-	fmt.Println(" ===========UPDATE SQL =====", sql)
+	log.Printf("mysql update sql: %s", sql)
 	return conn.Execute(sql)
 }
 func (conn *Mysql) Delete(tablename string, condition map[string]interface{}) (sql.Result, error) {
@@ -202,7 +203,7 @@ func (conn *Mysql) GetCount(tablename string, condition map[string]interface{}, 
 		if len(record) == 0 {
 			return 0
 		}
-		fmt.Println("record==========", record[0])
+		log.Printf("mysql count record: %+v", record[0])
 		n, _ := strconv.Atoi(record[0]["_total"])
 		return n
 	}

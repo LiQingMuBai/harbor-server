@@ -96,7 +96,7 @@ func (m *SmsAPI) SendSmsA(phone string, content string) bool {
 	}
 
 	rs := HttpFormPost(apiURL, map[string]interface{}{"appkey": appID, "secretkey": appKey, "phone": phone, "content": content})
-	fmt.Println(rs)
+	ServiceInfo("sms api response:", rs)
 	var s interface{}
 	err := json.Unmarshal([]byte(rs), &s)
 	if err != nil {

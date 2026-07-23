@@ -5,7 +5,6 @@ import (
 	"cointrade/lib/db"
 	"cointrade/utils"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 )
@@ -151,7 +150,7 @@ func (m *UserModel) IsNewUser(uid int) *BaseResponse {
 func (m *UserModel) Claim(uid int) *BaseResponse {
 	rs := new(BaseResponse)
 	if exists := config.GlobalDB.GetCount("users_mechanism", db.DB_PARAMS{"user_id": uid}); exists == 0 {
-		log.Println("NEW USER ", uid, " ADD 10 USDT")
+		utils.ServiceInfo("new user claim bonus:", uid, "add 10 usdt")
 		MODEL_USER.AddCredit(uid, &CreditValue{
 			Credit:          100,
 			UserCoinLogType: 4100001,
@@ -164,9 +163,9 @@ func (m *UserModel) Claim(uid int) *BaseResponse {
 
 		params := map[string]interface{}{"user_id": uid}
 		_, err := config.GlobalDB.InsertData("users_mechanism", params)
-		log.Println("uid has not been exit,so cache uid ", uid)
+		utils.ServiceInfo("cache new user mechanism record:", uid)
 		if err != nil {
-			log.Println("success")
+			utils.ServiceError("insert user mechanism record failed:", err)
 		}
 	}
 	rs.State = STATE_SUCCESS

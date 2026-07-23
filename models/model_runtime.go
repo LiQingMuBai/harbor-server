@@ -113,7 +113,7 @@ func GetMiningIncomeMap() map[int][]float64 {
 	for _, v := range tmpArr {
 		rs[n] = make([]float64, 2)
 		tarr := strings.Split(v, "|")
-		if len(tarr) == 0 {
+		if len(tarr) < 2 {
 			continue
 		}
 		rs[n][0] = utils.GetFloat(tarr[0]) / float64(100)

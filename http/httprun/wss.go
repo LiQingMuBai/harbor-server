@@ -199,18 +199,24 @@ func GZIPEn(str string) []byte {
 	var b bytes.Buffer
 	gz := gzip.NewWriter(&b)
 	if _, err := gz.Write([]byte(str)); err != nil {
-		panic(err)
-	}
-	if err := gz.Flush(); err != nil {
-		panic(err)
+		utils.ServiceError("gzip write failed:", err)
+		return []byte(str)
 	}
 	if err := gz.Close(); err != nil {
-		panic(err)
+		utils.ServiceError("gzip close failed:", err)
+		return []byte(str)
 	}
 	return b.Bytes()
 }
+
+func parseRequestConfig(data interface{}) *config.MConfig {
+	if data == nil {
+		return nil
+	}
+	return (&config.ConfigValue{Value: data}).ToConfig()
+}
 func DBServiceMessageReciveFunc() {
-	fmt.Println("db service msg server start")
+	utils.ServiceInfo("db service msg server start")
 	//客服消息处理
 	for {
 		message := <-SERVICE_MESSAGE_RECIVE_CHAN
@@ -221,18 +227,18 @@ func DBServiceMessageReciveFunc() {
 			"flag":       message.Flag,
 			"id":         0,
 		}
-		fmt.Println("service msg:", insertData)
+		utils.ServiceInfo("service msg:", insertData)
 		id, err := config.GlobalDB.InsertData(models.DB_TABLE_SERVICE_MESSAGE, insertData)
 		if err == nil {
 			insertData["id"] = id
 		} else {
-			fmt.Println("service db error:", err.Error())
+			utils.ServiceError("service db error:", err)
 		}
 
 		//notify.NOTIFY.NewMsg(insertData)
 		go func() {
 			for _, v := range ADMIN_SOCKET_LIST {
-				fmt.Println(insertData)
+				utils.ServiceInfo("push admin service msg:", insertData)
 				v.SendMessage(v.Ws, BaseRequestMessage{CMD: WS_CMD_SERVICE, Data: insertData})
 			}
 		}()
@@ -333,8 +339,7 @@ func (m *WwebsocketWorker) WssWorker(r *gin.Context) {
 		var msg BaseRequestMessage
 		err := ws.ReadJSON(&msg)
 		if err != nil {
-			fmt.Println(ws.ReadMessage())
-			fmt.Println("1112233err:", err)
+			utils.ServiceError("websocket read json failed:", err)
 			//m.Close(r)
 			break
 		}
@@ -357,11 +362,11 @@ func (m *WwebsocketWorker) WssWorker(r *gin.Context) {
 }
 func (m *WwebsocketWorker) SendMessage(ws *websocket.Conn, data interface{}) error { //发送消息
 	bs, err := json.Marshal(data)
-	send_data := GZIPEn(string(bs))
 	if err != nil {
-		fmt.Println("发送错误:", err.Error())
+		utils.ServiceError("send message marshal failed:", err)
 		return err
 	}
+	send_data := GZIPEn(string(bs))
 	m.WriteLock.Lock()
 	defer m.WriteLock.Unlock()
 	return ws.WriteMessage(websocket.BinaryMessage, send_data)
@@ -371,11 +376,11 @@ func (m *WwebsocketWorker) ServiceMessage(r *gin.Context, rq *BaseRequestMessage
 		m.Close(r)
 		return
 	}
-	fmt.Println("service msg11111:", rq.Data)
-	mp := config.ConfigValue{Value: rq.Data}
-	text := mp.ToString()
+	if rq == nil || rq.Data == nil {
+		return
+	}
+	text := utils.GetJsonValue(rq.Data)
 	uid := r.GetInt("uid")
-	fmt.Println("uid====", uid)
 	if uid <= 0 { //游客不给发消息
 		return
 	}
@@ -384,7 +389,6 @@ func (m *WwebsocketWorker) ServiceMessage(r *gin.Context, rq *BaseRequestMessage
 	message.CreateTime = utils.GetNow()
 	message.Flag = 1
 	message.Uid = uid
-	fmt.Println("msg234:", message)
 	SERVICE_MESSAGE_RECIVE_CHAN <- message
 
 }
@@ -418,11 +422,14 @@ func (m *WwebsocketWorker) ChangeDataGet(rq *BaseRequestMessage, r *gin.Context,
 		m.Close(r)
 		return
 	}*/
-	mp := config.ConfigValue{Value: rq.Data}
-	dataCode := mp.ToConfig().GetValue("datacode")
-	only := mp.ToConfig().GetValue("only")
-	period := mp.ToConfig().GetValue("period")
-	history := mp.ToConfig().GetValue("history")
+	cfg := parseRequestConfig(rq.Data)
+	if cfg == nil {
+		return
+	}
+	dataCode := cfg.GetValue("datacode")
+	only := cfg.GetValue("only")
+	period := cfg.GetValue("period")
+	history := cfg.GetValue("history")
 	if dataCode != nil { //设置行情码
 		r.Set("datacode", dataCode.ToInt())
 	}
@@ -446,9 +453,10 @@ func (m *WwebsocketWorker) Ping(rq *BaseRequestMessage, r *gin.Context, ws *webs
 		return
 	}
 	if rq.Data != nil {
-		fmt.Println("ping:", rq.Data)
-		mp := config.ConfigValue{Value: rq.Data}
-		pingmap := mp.ToConfig()
+		pingmap := parseRequestConfig(rq.Data)
+		if pingmap == nil {
+			return
+		}
 		if ts := pingmap.GetValue("ts"); ts != nil {
 			if ts.ToInt() != r.GetInt("lastping") {
 				m.Close(r)
@@ -460,12 +468,17 @@ func (m *WwebsocketWorker) Ping(rq *BaseRequestMessage, r *gin.Context, ws *webs
 
 func (m *WwebsocketWorker) Login(rq *BaseRequestMessage, r *gin.Context, ws *websocket.Conn) {
 	//处理登录SOCKET
-	mp := config.ConfigValue{Value: rq.Data}
-	sid := mp.ToConfig().GetValue("sid")
-	uid := mp.ToConfig().GetValue("uid").ToInt()
-	admin_pass := mp.ToConfig().GetValue("admin_pass")
+	cfg := parseRequestConfig(rq.Data)
+	if cfg == nil {
+		return
+	}
+	sid := cfg.GetValue("sid")
+	uid := 0
+	if uidValue := cfg.GetValue("uid"); uidValue != nil {
+		uid = uidValue.ToInt()
+	}
+	admin_pass := cfg.GetValue("admin_pass")
 	r.Set("admin", 0)
-	fmt.Println("rq.data", rq.Data)
 	if sid != nil {
 		_uid := models.MODEL_USER.CheckSessionId(sid.ToString())
 		if _uid == uid && _uid > 0 {
@@ -511,7 +524,7 @@ func (m *WwebsocketWorker) Login(rq *BaseRequestMessage, r *gin.Context, ws *web
 				WS_ADMIN_LOCK.Lock()
 				ADMIN_SOCKET_LIST[admin_id] = m
 				WS_ADMIN_LOCK.Unlock()
-				fmt.Println(" ADMIN_SOCKET_LIST", ADMIN_SOCKET_LIST)
+				utils.ServiceInfo("admin socket registered")
 				return
 			}
 			_uid = utils.GetInt(fmt.Sprintf("%d%d", -1*utils.GetNow(), rand.Intn(1000)))
@@ -550,7 +563,6 @@ func (m *WwebsocketWorker) SendData(r *gin.Context, ws *websocket.Conn) { //一�
 			if history_state == 0 {
 
 				//fmt.Println("kline data:", COIN_LAST_MAP[only].(primitive.M)["close"])
-				fmt.Println(COIN_LAST_MAP[only])
 				m.SendMessage(ws, BaseRequestMessage{CMD: WS_CMD_KILNEDATA, Data: COIN_LAST_MAP[only]}) //向用户端推送最新行情信息
 			} else {
 

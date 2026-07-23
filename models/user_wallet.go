@@ -5,7 +5,6 @@ import (
 	"cointrade/lib/db"
 	"cointrade/utils"
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -43,7 +42,7 @@ func (m *UserModel) RegisterByAddress(address string, ip string) int { //钱包�
 	registerQueue := map[string]interface{}{"uid": uid, "invite_order": ""}
 	config.GlobalRedis.PushQueue(QUEUE_USER_REGISTER, registerQueue)
 	if err != nil {
-		log.Fatal(err.Error())
+		utils.ServiceError("register by address failed:", err)
 		return 0
 	}
 	config.GlobalRedis.PushQueue(QUEUE_USER_WALLET_STATE, uid)

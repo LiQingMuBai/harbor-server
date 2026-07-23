@@ -3,6 +3,7 @@ package taskshell
 import (
 	"cointrade/config"
 	"cointrade/models"
+	"cointrade/utils"
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
@@ -18,7 +19,7 @@ func GetHistoryData() {
 			continue
 		}
 		for _, p := range models.PERIOD_LIST {
-			fmt.Println(v["pair"])
+			utils.ServiceInfo("start history sync:", v["pair"], p)
 			go GetHistorySymbol(v["pair"], p)
 		}
 
@@ -35,20 +36,30 @@ func GetHistorySymbol(pair string, period string) {
 	c.Transport = tr
 	resp, err := c.Do(rq)
 	//resp, err := http.Get(url)
-	if err != nil {
-		fmt.Printf(" %+v \n", err.Error())
+	if err != nil || resp == nil {
+		if err != nil {
+			utils.ServiceError("history request failed:", pair, period, err)
+		}
+		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		fmt.Println("出错了===>", pair, "|", period)
+		utils.ServiceError("read history body failed:", pair, period, err)
 	}
 	obj := config.GlobalConfig.GetConfigFromJson(string(body))
-	if obj.GetValue("data") == nil {
+	if obj == nil {
 		return
 	}
-	mp := obj.GetValue("data").Value.([]interface{})
+	dataValue := obj.GetValue("data")
+	if dataValue == nil {
+		return
+	}
+	mp, ok := dataValue.Value.([]interface{})
+	if !ok {
+		return
+	}
 	n := len(mp)
 	n = n - 1
 	for n > 0 {

@@ -96,7 +96,7 @@ func CreateResult() string {
 }
 func CheckWin(betcontent string, result string) int { //返回中奖总注数
 	rs := 0
-	utils.Log("result:", result)
+	utils.ServiceInfo("lucky result:", result)
 	bet_arr := strings.Split(betcontent, ",")
 	if len(bet_arr) < 5 {
 		return rs

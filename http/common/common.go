@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"reflect"
 	"runtime/debug"
 	"strings"
 
@@ -123,7 +122,7 @@ func (m *ModuleBase) ConvertObject(r *gin.Context, obj interface{}) error {
 			err := json.Unmarshal(dataStr, obj)
 			return err
 		} else {
-			utils.Log("UnmarshalErr", err)
+			utils.ServiceError("unmarshal request data failed:", err)
 			return err
 		}
 	}
@@ -134,39 +133,50 @@ func (m *ModuleBase) SendResponse(r *gin.Context, code int, data interface{}) {
 	r.JSON(200, HttpResponse{Code: code, Data: data})
 }
 
+func (m *ModuleBase) getRequestDataMap(r *gin.Context) map[string]interface{} {
+	data, ok := r.Get("data")
+	if !ok || data == nil {
+		return nil
+	}
+	mp, ok := data.(map[string]interface{})
+	if !ok {
+		return nil
+	}
+	return mp
+}
+
 func (m *ModuleBase) GetValue(r *gin.Context, key string) string {
-	data, b := r.Get("data")
-	if b {
-		if reflect.TypeOf(data).Kind() == reflect.Map {
-			s, ok := data.(map[string]interface{})[key]
-			if ok {
-				return utils.GetJsonValue(s)
-			}
-		}
+	data := m.getRequestDataMap(r)
+	if data == nil {
+		return ""
+	}
+	s, ok := data[key]
+	if ok {
+		return utils.GetJsonValue(s)
 	}
 	return ""
 }
+
 func (m *ModuleBase) GetInt(r *gin.Context, key string) int {
-	data, b := r.Get("data")
-	if b {
-		if reflect.TypeOf(data).Kind() == reflect.Map {
-			s, ok := data.(map[string]interface{})[key]
-			if ok {
-				return utils.GetInt(utils.GetJsonValue(s))
-			}
-		}
+	data := m.getRequestDataMap(r)
+	if data == nil {
+		return 0
+	}
+	s, ok := data[key]
+	if ok {
+		return utils.GetInt(utils.GetJsonValue(s))
 	}
 	return 0
 }
+
 func (m *ModuleBase) GetFloat(r *gin.Context, key string) float64 {
-	data, b := r.Get("data")
-	if b {
-		if reflect.TypeOf(data).Kind() == reflect.Map {
-			s, ok := data.(map[string]interface{})[key]
-			if ok {
-				return utils.GetFloat(utils.GetJsonValue(s))
-			}
-		}
+	data := m.getRequestDataMap(r)
+	if data == nil {
+		return 0
+	}
+	s, ok := data[key]
+	if ok {
+		return utils.GetFloat(utils.GetJsonValue(s))
 	}
 	return 0
 }

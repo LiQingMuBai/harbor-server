@@ -154,7 +154,7 @@ func (m *UserModel) SaveAdmin(rq P) *AdminResponse {
 		_, err = config.GlobalDB.InsertData(models.DB_TABLE_ADMIN, up)
 	}
 	if err != nil {
-		fmt.Printf("请复制 '%s' 并添加到google验证器\n", err.Error())
+		utils.ServiceErrorf("save admin info failed, copy secret manually if needed: %v", err)
 		rs.State = ERROR
 		rs.Data = "操作管理员信息失败！"
 		return rs

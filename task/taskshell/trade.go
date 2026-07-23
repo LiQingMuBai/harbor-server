@@ -204,7 +204,7 @@ func OpDelegateTrade(one db.DBValues) bool {
 	case models.OPEN_TYPE_KEEP: //永续合约处理
 		if one["delegate_type"].ToInt() == models.DELEGATE_TYPE_BUY {
 			//买单处理
-			fmt.Println("coinprice:", coinprice)
+			utils.ServiceInfo("trade coinprice:", coinprice)
 			if (one["flag"].ToInt() == models.DIRECT_TYPE_BIG && coinprice <= one["price"].ToFloat()) || (one["flag"].ToInt() == models.DIRECT_TYPE_SMALL && coinprice >= one["price"].ToFloat()) {
 				//价格到达了临界点
 				if models.MODEL_USER.AddCredit(uid, &models.CreditValue{
@@ -537,7 +537,7 @@ func ClearExplodeTrade() {
 			}
 			backCredit = v["credit"].ToFloat() + profit
 			if v["mode"].ToInt() == models.USER_MODE_REAL {
-				fmt.Println(" 交割真实订单.....")
+				utils.ServiceInfo("settling real order")
 				models.MODEL_USER.AddCredit(v["uid"].ToInt(), &models.CreditValue{
 					Credit:          backCredit,
 					LockCredit:      0,

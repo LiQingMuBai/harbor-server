@@ -167,7 +167,7 @@ func (s *SystemModel) Setting(rq ...P) *AdminResponse {
 	for _, row := range list {
 		keyP[row.Get("key").ToString()] = row.Get("value").ToString()
 	}
-	if len(rq[0]) == 0 {
+	if len(rq) == 0 || len(rq[0]) == 0 {
 		return &AdminResponse{State: SUCCESS, Data: keyP}
 	}
 	s.Config = keyP

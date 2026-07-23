@@ -6,7 +6,6 @@ import (
 	"cointrade/models"
 	"cointrade/utils"
 	"encoding/json"
-	"fmt"
 	"strings"
 )
 
@@ -99,13 +98,13 @@ func Team() {
 				mp := config.GlobalConfig.GetConfigFromJson(v)
 				uid := mp.GetValue("uid").ToInt()
 				data := utils.GetJsonValue(mp.GetValue("data").Value)
-				fmt.Println(data)
+				utils.ServiceInfo("team credit log payload:", data)
 				logInfo := new(models.QueueTeamLog)
 				err := json.Unmarshal([]byte(data), logInfo)
 				if err == nil {
 					models.MODEL_CREDIT_LOG.AddUserCountLog(uid, logInfo)
 				} else {
-					fmt.Println(err.Error())
+					utils.ServiceError("team credit log unmarshal failed:", err)
 				}
 			}
 		}
