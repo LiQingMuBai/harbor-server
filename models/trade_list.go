@@ -4,8 +4,8 @@ func (m *TradeModel) GetDelegateList(uid int, rq *TradeListRequest) *PageBaseRes
 	return tradeSvc.GetDelegateList(uid, rq)
 }
 
-func (m *TradeModel) GetOpendList(uid int, rq *TradeListRequest) *PageBaseResponse {
-	return tradeSvc.GetOpendList(uid, rq)
+func (m *TradeModel) GetOpenedList(uid int, rq *TradeListRequest) *PageBaseResponse {
+	return tradeSvc.GetOpenedList(uid, rq)
 }
 
 func (m *TradeModel) GetCloseList(uid int, rq *TradeListRequest) *PageBaseResponse {

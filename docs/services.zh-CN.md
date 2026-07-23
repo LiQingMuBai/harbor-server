@@ -156,7 +156,7 @@ WebSocket 推送服务。
 
 - 委托下单：`/trade/delegate`
 - 委托列表：`/trade/delegate/list`
-- 持仓列表：`/trade/opend/list`
+- 持仓列表：`/trade/opend/list`（兼容旧路径），`/trade/open/list`（新路径）
 - 平仓列表：`/trade/close/list`
 
 ### 资产模块

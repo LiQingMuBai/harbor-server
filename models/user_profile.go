@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func (m *UserModel) UpdatePorfile(uid int, rq *UpdateProfileRequest) *BaseResponse {
+func (m *UserModel) UpdateProfile(uid int, rq *UpdateProfileRequest) *BaseResponse {
 	data := db.DB_PARAMS{}
 	if rq.Avatar != "" {
 		data["avatar"] = rq.Avatar

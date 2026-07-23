@@ -78,23 +78,23 @@ func (s *Service) GetCloseBySn(uid int, sn string) db.DB_ROW_RESULT {
 	return one
 }
 
-func (s *Service) GetOpendBySn(uid int, sn string) *tradedomain.OpenedInfo {
+func (s *Service) GetOpenedBySn(uid int, sn string) *tradedomain.OpenedInfo {
 	one, _ := s.repo.FetchOpenedBySN(uid, sn)
 	return buildOpenedInfo(uid, one)
 }
 
-func (s *Service) GetOpendOne(uid int, coin string, tradeType int, flag int, mode int, ganggan int) *tradedomain.OpenedInfo {
+func (s *Service) GetOpenedOne(uid int, coin string, tradeType int, flag int, mode int, ganggan int) *tradedomain.OpenedInfo {
 	one, _ := s.repo.FetchOpened(uid, coin, tradeType, flag, mode, ganggan)
 	return buildOpenedInfo(uid, one)
 }
 
-func (s *Service) AddKeepOpend(delegateInfo db.DBValues) {
+func (s *Service) AddKeepOpened(delegateInfo db.DBValues) {
 	ntime := utils.GetNow()
 	var openinfo *tradedomain.OpenedInfo
 	if delegateInfo["ganggan"].ToInt() > 1 {
 		openinfo = nil
 	} else {
-		openinfo = s.GetOpendOne(
+		openinfo = s.GetOpenedOne(
 			delegateInfo["uid"].ToInt(),
 			delegateInfo["coin_symbol"].ToString(),
 			delegateInfo["trade_type"].ToInt(),
@@ -186,7 +186,7 @@ func (s *Service) GetDelegateList(uid int, rq *tradedomain.TradeListRequest) *sh
 	}
 }
 
-func (s *Service) GetOpendList(uid int, rq *tradedomain.TradeListRequest) *shareddomain.PageBaseResponse {
+func (s *Service) GetOpenedList(uid int, rq *tradedomain.TradeListRequest) *shareddomain.PageBaseResponse {
 	uinfo := s.user.GetBaseInfo(uid)
 	if uinfo == nil {
 		return nil
@@ -407,7 +407,7 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 		} else {
 			var one *tradedomain.OpenedInfo
 			if rq.Sn != "" {
-				one = s.GetOpendBySn(uid, rq.Sn)
+				one = s.GetOpenedBySn(uid, rq.Sn)
 				if one == nil {
 					rs.State = tradedomain.DELEGATE_STATE_NOCOIN
 					rs.Msg = shareddomain.MsgAssetNotOwned
@@ -420,7 +420,7 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 				}
 				insertData["ganggan_sn"] = rq.Sn
 			} else {
-				one = s.GetOpendOne(uid, rq.Coin, rq.OpenType, rq.DirectType, uinfo.Mode, rq.GangGan)
+				one = s.GetOpenedOne(uid, rq.Coin, rq.OpenType, rq.DirectType, uinfo.Mode, rq.GangGan)
 			}
 			if one == nil || rq.Amount > one.Num {
 				rs.State = tradedomain.DELEGATE_STATE_NOCOIN
@@ -613,7 +613,7 @@ func (s *Service) CancleDelegate(uid int, sn string) *shareddomain.BaseResponse 
 			return rs
 		}
 		num := one["num"].ToFloat()
-		opendInfo := s.GetOpendOne(uid, coin, tradedomain.OPEN_TYPE_KEEP, flag, uinfo.Mode, one["ganggan"].ToInt())
+		opendInfo := s.GetOpenedOne(uid, coin, tradedomain.OPEN_TYPE_KEEP, flag, uinfo.Mode, one["ganggan"].ToInt())
 		if opendInfo != nil {
 			_ = s.repo.AddOpenedPositionValue(opendInfo.Id, map[string]float64{"num": num, "lock_num": -1 * num})
 			if err := s.repo.UpdateDelegateState(one["id"].Value, 2, 0); err != nil {
@@ -1100,7 +1100,7 @@ func (s *Service) operateKeepDelegate(one db.DBValues, coin string, coinprice fl
 					CreateTime: ntime,
 				},
 			}) {
-				s.AddKeepOpend(one)
+				s.AddKeepOpened(one)
 				return true
 			}
 		}
@@ -1111,9 +1111,9 @@ func (s *Service) operateKeepDelegate(one db.DBValues, coin string, coinprice fl
 		(one["flag"].ToInt() == tradedomain.DIRECT_TYPE_SMALL && coinprice <= one["price"].ToFloat()) {
 		var appendInfo *tradedomain.OpenedInfo
 		if one["ganggan_sn"].ToString() != "0" && one["ganggan"].ToInt() > 1 {
-			appendInfo = s.GetOpendBySn(uid, one["ganggan_sn"].ToString())
+			appendInfo = s.GetOpenedBySn(uid, one["ganggan_sn"].ToString())
 		} else {
-			appendInfo = s.GetOpendOne(uid, coin, one["trade_type"].ToInt(), one["flag"].ToInt(), one["mode"].ToInt(), one["ganggan"].ToInt())
+			appendInfo = s.GetOpenedOne(uid, coin, one["trade_type"].ToInt(), one["flag"].ToInt(), one["mode"].ToInt(), one["ganggan"].ToInt())
 		}
 		if appendInfo == nil {
 			return false

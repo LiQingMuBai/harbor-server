@@ -32,16 +32,6 @@ const (
 	EXCHANGE_DIRECTION_ACCOUNT  = 2
 )
 
-const (
-	WIDTHDRAW_STATE_MIN                = WITHDRAW_STATE_MIN
-	WIDTHDRAW_STATE_ERROR_USER         = WITHDRAW_STATE_ERROR_USER
-	WIDTHDRAW_STATE_ERROR_ADDRESS      = WITHDRAW_STATE_ERROR_ADDRESS
-	WIDTHDRAW_STATE_NOTENOUGH          = WITHDRAW_STATE_NOTENOUGH
-	WIDTHDRAW_STATE_ERROR_CASHPASSWORD = WITHDRAW_STATE_ERROR_CASHPASSWORD
-	WIDTHDRAW_STATE_ERROR_LOCKED       = WITHDRAW_STATE_ERROR_LOCKED
-	WIDTHDRAW_STATE_ERROR_NOTBINDBANK  = WITHDRAW_STATE_ERROR_NOTBINDBANK
-)
-
 type TransferRequest struct {
 	Coin      string  `json:"coin"`
 	Amount    float64 `json:"amount"`
@@ -62,8 +52,6 @@ type TransferLogsRequest struct {
 	Direction int `json:"direct"`
 }
 
-type TransFerLogsRequest = TransferLogsRequest
-
 type WithdrawRequest struct {
 	CoinType     string  `json:"cointype"`
 	Contract     string  `json:"contract"`
@@ -71,8 +59,6 @@ type WithdrawRequest struct {
 	Amount       float64 `json:"amount"`
 	CashPassword string  `json:"cashpassword"`
 }
-
-type WithDrawRequest = WithdrawRequest
 
 type WalletAddressRequest struct {
 	CoinType string `json:"cointype"`

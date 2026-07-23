@@ -108,10 +108,6 @@ func GetRechargeIncomeMap() map[int]float64 {
 	return rs
 }
 
-func GetRechageIncomeMap() map[int]float64 {
-	return GetRechargeIncomeMap()
-}
-
 func GetMiningIncomeMap() map[int][]float64 {
 	rs := make(map[int][]float64)
 	tmpArr := strings.Split(config.GlobalConfig.GetValue("mining_income_rates").ToString(), ",")

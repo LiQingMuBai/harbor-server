@@ -27,10 +27,6 @@ func (m *CreditModule) TransferDetail(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_CREDIT.TransferDetail(uid, sn))
 }
 
-func (m *CreditModule) TransFerDetail(r *gin.Context) {
-	m.TransferDetail(r)
-}
-
 func (m *CreditModule) TransferLogs(r *gin.Context) {
 	uid := r.GetInt("uid")
 	var rq models.TransferLogsRequest
@@ -40,10 +36,6 @@ func (m *CreditModule) TransferLogs(r *gin.Context) {
 		return
 	}
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_CREDIT.TransferLogs(uid, &rq))
-}
-
-func (m *CreditModule) TransFerLogs(r *gin.Context) {
-	m.TransferLogs(r)
 }
 
 func (m *CreditModule) Transfer(r *gin.Context) {

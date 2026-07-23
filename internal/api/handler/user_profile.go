@@ -36,7 +36,7 @@ func (m *UserModule) UpdateProfile(r *gin.Context) {
 		m.SendResponse(r, common.HTTP_CODE_ERRORPARAM, nil)
 		return
 	}
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.UpdatePorfile(uid, &rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.UpdateProfile(uid, &rq))
 }
 
 func (m *UserModule) Update(r *gin.Context) {

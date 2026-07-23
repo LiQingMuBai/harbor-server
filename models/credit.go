@@ -25,14 +25,6 @@ const (
 	WITHDRAW_STATE_ERROR_CASHPASSWORD = creditdomain.WITHDRAW_STATE_ERROR_CASHPASSWORD
 	WITHDRAW_STATE_ERROR_LOCKED       = creditdomain.WITHDRAW_STATE_ERROR_LOCKED
 	WITHDRAW_STATE_ERROR_NOTBINDBANK  = creditdomain.WITHDRAW_STATE_ERROR_NOTBINDBANK
-
-	WIDTHDRAW_STATE_MIN                = creditdomain.WIDTHDRAW_STATE_MIN
-	WIDTHDRAW_STATE_ERROR_USER         = creditdomain.WIDTHDRAW_STATE_ERROR_USER
-	WIDTHDRAW_STATE_ERROR_ADDRESS      = creditdomain.WIDTHDRAW_STATE_ERROR_ADDRESS
-	WIDTHDRAW_STATE_NOTENOUGH          = creditdomain.WIDTHDRAW_STATE_NOTENOUGH
-	WIDTHDRAW_STATE_ERROR_CASHPASSWORD = creditdomain.WIDTHDRAW_STATE_ERROR_CASHPASSWORD
-	WIDTHDRAW_STATE_ERROR_LOCKED       = creditdomain.WIDTHDRAW_STATE_ERROR_LOCKED
-	WIDTHDRAW_STATE_ERROR_NOTBINDBANK  = creditdomain.WIDTHDRAW_STATE_ERROR_NOTBINDBANK
 	RECHARGE_STATE_ERROR_NOTAPPROVE    = creditdomain.RECHARGE_STATE_ERROR_NOTAPPROVE
 	RECHARGE_STATE_ERROR_MONEY         = creditdomain.RECHARGE_STATE_ERROR_MONEY
 	RECHARGE_STATE_ERROR_TRANS         = creditdomain.RECHARGE_STATE_ERROR_TRANS
@@ -48,11 +40,7 @@ type TransferRequest = creditdomain.TransferRequest
 
 type RechargeRequest = creditdomain.RechargeRequest
 
-type TransFerLogsRequest = creditdomain.TransFerLogsRequest
-
 type TransferLogsRequest = creditdomain.TransferLogsRequest
-
-type WithDrawRequest = creditdomain.WithDrawRequest
 
 type WithdrawRequest = creditdomain.WithdrawRequest
 

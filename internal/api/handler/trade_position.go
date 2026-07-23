@@ -9,7 +9,8 @@ import (
 
 func (m *TradeModule) positionRoutes() common.MODULEHANDLELIST {
 	return common.MODULEHANDLELIST{
-		&common.ModuleHandles{Method: "post", Path: "/trade/opend/list", Handles: common.HandleArray{m.NeedLogin, m.OpendList}},
+		&common.ModuleHandles{Method: "post", Path: "/trade/opend/list", Handles: common.HandleArray{m.NeedLogin, m.OpenList}},
+		&common.ModuleHandles{Method: "post", Path: "/trade/open/list", Handles: common.HandleArray{m.NeedLogin, m.OpenList}},
 		&common.ModuleHandles{Method: "post", Path: "/trade/close/list", Handles: common.HandleArray{m.NeedLogin, m.CloseList}},
 		&common.ModuleHandles{Method: "post", Path: "/trade/close/detail", Handles: common.HandleArray{m.NeedLogin, m.GetClose}},
 	}
@@ -21,7 +22,7 @@ func (m *TradeModule) GetClose(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_TRADE.GetCloseBySn(uid, sn))
 }
 
-func (m *TradeModule) OpendList(r *gin.Context) {
+func (m *TradeModule) OpenList(r *gin.Context) {
 	uid := r.GetInt("uid")
 	var rq models.TradeListRequest
 	rq.Limit = 15
@@ -33,7 +34,7 @@ func (m *TradeModule) OpendList(r *gin.Context) {
 		m.SendResponse(r, common.HTTP_CODE_ERRORPARAM, nil)
 		return
 	}
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_TRADE.GetOpendList(uid, &rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_TRADE.GetOpenedList(uid, &rq))
 }
 
 func (m *TradeModule) CloseList(r *gin.Context) {

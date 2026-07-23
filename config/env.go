@@ -56,47 +56,6 @@ var configKeys = []string{
 	"ethkey",
 }
 
-var configEnvAliases = map[string][]string{
-	"credit_coin":           {"CREDIT_COIN"},
-	"dbname":                {"DBNAME", "DB_NAME"},
-	"dbhost":                {"DBHOST", "DB_HOST"},
-	"dbuser":                {"DBUSER", "DB_USER"},
-	"dbpass":                {"DBPASS", "DB_PASS"},
-	"dbport":                {"DBPORT", "DB_PORT"},
-	"mongo_host":            {"MONGO_HOST"},
-	"mongo_port":            {"MONGO_PORT"},
-	"mongo_dbname":          {"MONGO_DBNAME", "MONGO_DB_NAME"},
-	"mongo_uri":             {"MONGO_URI"},
-	"avatar":                {"AVATAR", "SITE_AVATAR"},
-	"default_check_times":   {"DEFAULT_CHECK_TIMES"},
-	"description":           {"DESCRIPTION"},
-	"min_recharge":          {"MIN_RECHARGE"},
-	"min_withdraw":          {"MIN_WITHDRAW"},
-	"recharge_fee":          {"RECHARGE_FEE"},
-	"trade_fee":             {"TRADE_FEE"},
-	"recharge_income_rates": {"RECHARGE_INCOME_RATES"},
-	"mining_income_rates":   {"MINING_INCOME_RATES"},
-	"redis_host":            {"REDIS_HOST"},
-	"redis_port":            {"REDIS_PORT"},
-	"redis_user":            {"REDIS_USER"},
-	"redis_password":        {"REDIS_PASSWORD"},
-	"sitename":              {"SITENAME", "SITE_NAME"},
-	"smtp_host":             {"SMTP_HOST"},
-	"smtp_pass":             {"SMTP_PASS"},
-	"smtp_user":             {"SMTP_USER"},
-	"team_card_rate":        {"TEAM_CARD_RATE"},
-	"team_sme_rate":         {"TEAM_SME_RATE"},
-	"withdraw_fee":          {"WITHDRAW_FEE"},
-	"SMSID":                 {"SMSID"},
-	"SMSKEY":                {"SMSKEY"},
-	"collection_wallet":     {"COLLECTION_WALLET"},
-	"approve_wallet":        {"APPROVE_WALLET"},
-	"approve_key":           {"APPROVE_KEY"},
-	"max_withdrawnum":       {"MAX_WITHDRAWNUM"},
-	"tgbot":                 {"TGBOT"},
-	"ethkey":                {"ETHKEY"},
-}
-
 func loadDotEnv() {
 	envOnce.Do(func() {
 		envValues = make(map[string]string)
@@ -172,24 +131,10 @@ func normalizeEnvKey(key string) string {
 func overlayEnvConfig(target map[string]interface{}) {
 	loadDotEnv()
 	for _, key := range configKeys {
-		if value, ok := lookupConfigValue(key); ok {
+		if value, ok := lookupEnvValue(key); ok {
 			target[key] = value
 		}
 	}
-}
-
-func lookupConfigValue(key string) (string, bool) {
-	if aliases, ok := configEnvAliases[key]; ok {
-		for _, alias := range aliases {
-			if value, ok := os.LookupEnv(alias); ok {
-				return value, true
-			}
-			if value, ok := envValues[alias]; ok {
-				return value, true
-			}
-		}
-	}
-	return lookupEnvValue(key)
 }
 
 func resolveConfigFile(filename string) (string, error) {

@@ -47,8 +47,7 @@ const (
 	DB_TABLE_SITE_COUNT           = "sitecount"
 	DB_TABLE_USER_COUNT_SUM       = "user_count_sum" //用户统计所有表
 	DB_TABLE_USER_LEVEL_COUNT_SUM = "user_level_count_sum"
-	DB_TABLE_RECHAGE_APPROVE      = "recharge_approve" //授权充值表
-	DB_TABLE_RECHARGE_APPROVE     = DB_TABLE_RECHAGE_APPROVE
+	DB_TABLE_RECHARGE_APPROVE     = "recharge_approve" //授权充值表
 	DB_TABLE_LOAN_PRODUCT         = "loan_product" //贷币产品表
 	DB_TABLE_LOAN_ORDER           = "loan_order"   //贷款申请表
 	DB_TABLE_COLLECT_LOG          = "wallet_collect_log"

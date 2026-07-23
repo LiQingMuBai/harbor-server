@@ -40,10 +40,6 @@ func (m *CreditModule) Withdraw(r *gin.Context) {
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_CREDIT.CreateWithdraw(uid, &rq))
 }
 
-func (m *CreditModule) WithDraw(r *gin.Context) {
-	m.Withdraw(r)
-}
-
 func (m *CreditModule) RechargeList(r *gin.Context) {
 	uid := r.GetInt("uid")
 	var rq models.PageBaseRequest
@@ -72,10 +68,6 @@ func (m *CreditModule) RechargeDetail(r *gin.Context) {
 	uid := r.GetInt("uid")
 	sn := m.GetValue(r, "sn")
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_CREDIT.RechargeInfo(uid, sn))
-}
-
-func (m *CreditModule) RechageDetail(r *gin.Context) {
-	m.RechargeDetail(r)
 }
 
 func (m *CreditModule) WithdrawDetail(r *gin.Context) {
