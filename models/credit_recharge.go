@@ -2,15 +2,56 @@ package models
 
 import (
 	"cointrade/config"
+	creditrepo "cointrade/internal/credit/repo"
+	creditservice "cointrade/internal/credit/service"
 	"cointrade/lib"
 	"cointrade/lib/db"
 	"cointrade/lib/notify"
 	"cointrade/utils"
 	"fmt"
-	"math"
 	"math/rand"
-	"strings"
 	"time"
+)
+
+type creditRechargeUserGateway struct{}
+
+func (creditRechargeUserGateway) GetBaseInfo(uid int) *UserBaseInfo {
+	return MODEL_USER.GetBaseInfo(uid)
+}
+
+func (creditRechargeUserGateway) AddCredit(uid int, value *CreditValue) bool {
+	return MODEL_USER.AddCredit(uid, value)
+}
+
+type creditRechargeSystemGateway struct{}
+
+func (creditRechargeSystemGateway) GetRechargeConfig(cointype string, contract string) *RechargeContractConfig {
+	return MODEL_SYSTEM.GetOneRechargeConfig(cointype, contract)
+}
+
+func (creditRechargeSystemGateway) GetCoinClosePrice(pair string) float64 {
+	coinPriceInfo := MODEL_SYSTEM.GetLastCoinInfo(pair)
+	if coinPriceInfo == nil {
+		return 0
+	}
+	closePrice, ok := coinPriceInfo["close"].(float64)
+	if !ok {
+		return 0
+	}
+	return closePrice
+}
+
+type creditRechargeNotifier struct{}
+
+func (creditRechargeNotifier) IncrementNotify(typ int, num int) {
+	notify.NOTIFY.AddNotify(&notify.NotifyItem{Type: typ, Num: num})
+}
+
+var creditRechargeSvc = creditservice.NewRechargeService(
+	creditrepo.NewDBRechargeRepository(),
+	creditRechargeUserGateway{},
+	creditRechargeSystemGateway{},
+	creditRechargeNotifier{},
 )
 
 func (m *CreditModel) MakeOrderSn(uid int, t int) string { //创建订单号
@@ -28,126 +69,27 @@ func (m *CreditModel) MakeOrderSn(uid int, t int) string { //创建订单号
 }
 
 func (m *CreditModel) GetAllRechargetAddress() db.DB_LIST_RESULT { //返回所有的充值钱包地址
-	list, _ := config.GlobalDB.FetchRows(DB_TABLE_RECHARGE_ADDRESS, db.DB_PARAMS{"state": 1}, db.DB_FIELDS{})
-	return list
+	return creditRechargeSvc.GetAllRechargeAddress()
 }
 
 func (m *CreditModel) CreateRecharge(uid int, rq *RechargeRequest) *RechargeResponse { //提交充值信息
-	rs := new(RechargeResponse)
-	uinfo := MODEL_USER.GetBaseInfo(uid)
-	rechargeConfig := MODEL_SYSTEM.GetOneRechargeConfig(rq.CoinType, rq.Contract)
-	if rechargeConfig == nil {
-		rs.State = STATE_SYSTEM_ERROR
-		rs.Msg = "system error"
-		return rs
-	}
-	if uinfo == nil {
-		rs.State = RECHARGE_STATE_ERROR_USER
-		rs.Msg = "the user is not exists"
-		return rs
-	}
-	if rq.Amount < rechargeConfig.Min {
-		rs.State = RECHARGE_STATE_MIN
-		rs.Msg = "too small"
-		return rs
-	}
-
-	rate := 1.0
-	cointype := strings.ToLower(rq.CoinType)
-	if cointype != "usdt" {
-		pair := fmt.Sprintf("%susdt", cointype)
-		coinPriceInfo := MODEL_SYSTEM.GetLastCoinInfo(pair)
-		if coinPriceInfo != nil {
-			rate = coinPriceInfo["close"].(float64)
-		}
-	}
-	sn := m.MakeOrderSn(uid, CREDIT_TYPE_RECHARGE)
-	insertData := db.DB_PARAMS{
-		"uid":         uid,
-		"sn":          sn,
-		"cointype":    rq.CoinType,
-		"contract":    rq.Contract,
-		"type":        0,
-		"credit":      rq.Amount,
-		"rate":        rate,
-		"fact_credit": rq.Amount * rate,
-		"createtime":  utils.GetNow(),
-		"info":        rechargeConfig.Address,
-		"txid":        "",
-		"proof":       rq.Proof,
-		"address":     rechargeConfig.Address,
-	}
-	_, err := config.GlobalDB.InsertData(DB_TABLE_RECHARGE, insertData)
-	if err != nil {
-		rs.State = STATE_SYSTEM_ERROR
-		rs.Msg = err.Error()
-		return rs
-	}
-	notify.NOTIFY.AddNotify(&notify.NotifyItem{Type: 2, Num: 1})
-	rs.State = STATE_SUCCESS
-	rs.Msg = "success"
-	rs.Info = insertData
-	rs.Sn = sn
-	return rs
+	return creditRechargeSvc.CreateRecharge(uid, rq)
 }
 
 func (m *CreditModel) SuccessRecharge(sn string) bool {
-	one := m.GetRechargeOrderBySn(sn)
-	if one == nil {
-		return false
-	}
-	ntime := utils.GetNow()
-	config.GlobalDB.UpdateData(DB_TABLE_RECHARGE, db.DB_PARAMS{"state": 1, "finishtime": ntime}, db.DB_PARAMS{"id": one["id"]})
-	cvalue := &CreditValue{
-		Credit:          utils.GetFloat(one["fact_credit"]),
-		VCrdit:          0,
-		LockCredit:      0,
-		LockVCredit:     0,
-		UserCoinLogType: COIN_LOG_USER_RECHARGE,
-		UserCoinLogInfo: QueueCreditLog{
-			Credit:     utils.GetFloat(one["fact_credit"]),
-			LockCredit: 0,
-			Sn:         sn,
-			CreateTime: ntime,
-		},
-		TeamCoinLogType: TEAM_LOG_RECHARGE,
-		TeamCoinLogInfo: QueueTeamLog{
-			Recharge:   utils.GetFloat(one["fact_credit"]),
-			CreateTime: ntime,
-		},
-	}
-	return MODEL_USER.AddCredit(utils.GetInt(one["uid"]), cvalue)
+	return creditRechargeSvc.SuccessRecharge(sn)
 }
 
 func (m *CreditModel) GetRechargeOrderBySn(sn string) db.DB_ROW_RESULT {
-	one, _ := config.GlobalDB.FetchRow(DB_TABLE_RECHARGE, db.DB_PARAMS{"sn": sn}, db.DB_FIELDS{})
-	return one
+	return creditRechargeSvc.GetRechargeOrderBySN(sn)
 }
 
 func (m *CreditModel) GetRechargetList(uid int, rq *PageBaseRequest) *PageBaseResponse { //充值记录获取
-	condition := db.DB_PARAMS{"uid": uid}
-	count := config.GlobalDB.GetCount(DB_TABLE_RECHARGE, condition)
-	pagesize := int(math.Ceil(float64(count) / float64(rq.Limit)))
-	if rq.Page > pagesize {
-		rq.Page = pagesize
-	}
-	if rq.Page == 0 {
-		rq.Page = 1
-	}
-	limitstr := fmt.Sprintf("limit %d,%d", (rq.Page-1)*rq.Limit, rq.Limit)
-	list, _ := config.GlobalDB.FetchRows(DB_TABLE_RECHARGE, condition, db.DB_FIELDS{}, "order by id desc", limitstr)
-	rs := new(PageBaseResponse)
-	rs.Limit = rq.Limit
-	rs.Page = rq.Page
-	rs.PageTotal = pagesize
-	rs.Total = count
-	rs.List = list
-	return rs
+	return creditRechargeSvc.GetRechargeList(uid, rq)
 }
 
 func (m *CreditModel) RechargeInfo(uid int, sn string) db.DB_ROW_RESULT {
-	one, _ := config.GlobalDB.FetchRow(DB_TABLE_RECHARGE, db.DB_PARAMS{"uid": uid, "sn": sn}, db.DB_FIELDS{})
-	return one
+	return creditRechargeSvc.RechargeInfo(uid, sn)
 }
 
 func (m *CreditModel) RechargeByApprove(uid int, amount float64) *BaseResponse { //通过授权充值

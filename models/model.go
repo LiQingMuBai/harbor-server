@@ -1,6 +1,7 @@
 package models
 
 import (
+	"cointrade/internal/domain/shared"
 	"cointrade/utils"
 	"strings"
 	"sync"
@@ -108,70 +109,17 @@ func (m *ModelBase) MakeCacheId(k ...interface{}) string {
 	return utils.Md5(strings.Join(arr, ""))
 }
 
-type BaseResponse struct { //基础返回信息
-	Msg   string `json:"msg"`   //返回的文本消息
-	State int    `json:"state"` //状态
-}
+type BaseResponse = shared.BaseResponse
 
-type PageBaseResponse struct { //分页基础返回信息
-	BaseResponse
-	Total     int         `json:"total"`     //数据总量
-	Page      int         `json:"page"`      //当前页数
-	PageTotal int         `json:"pagetotal"` //总页数
-	Limit     int         `json:"limit"`     //每页的数量
-	List      interface{} `json:"list"`      //列表
-}
-type PageBaseRequest struct { //基础列表请求
-	Page  int `json:"page"`
-	Limit int `json:"limit"`
-}
+type PageBaseResponse = shared.PageBaseResponse
 
-type Currency struct {
-	Id      int     `json:"id"`
-	Symbol  string  `json:"symbol"`
-	Rate    float64 `json:"rate"`
-	Country string  `json:"country"`
-	Memo    string  `json:"memo"`
-}
+type PageBaseRequest = shared.PageBaseRequest
 
-type Recharge struct {
-	Id         int     `json:"id"`
-	Uid        int     `json:"uid"`
-	Email      string  `json:"email"`
-	Sn         string  `json:"sn"`
-	CoinType   string  `json:"cointype"`
-	Type       int     `json:"type"`
-	Credit     float64 `json:"credit"`
-	Createtime int     `json:"createtime"`
-	FactCredit float64 `json:"fact_credit"`
-	Info       string  `json:"info"`
-	Txid       string  `json:"txid"`
-	State      int     `json:"state"`
-	FinishTime int     `json:"finishtime"`
-	Proof      string  `json:"proof"`
-}
+type Currency = shared.Currency
 
-type Withdraw struct {
-	Id         int         `json:"id"`
-	Uid        int         `json:"uid"`
-	UserName   string      `json:"username"`
-	ParentName string      `json:"parent_name"`
-	Credit     float64     `json:"credit"`
-	FactCredit float64     `json:"fact_credit"`
-	CoinType   string      `json:"cointype"`
-	Contract   string      `json:"contract"`
-	Fee        float64     `json:"fee"`
-	Type       int         `json:"type"`
-	FinishTime int         `json:"finishtime"`
-	Info       interface{} `json:"info"`
-	CreateTime int         `json:"createtime"`
-	Rate       float64     `json:"rate"`
-	Sn         string      `json:"sn"`
-	State      int         `json:"state"`
-	Address    string      `json:"address"`
-	Memo       string      `json:"memo"`
-	UserType   int         `json:"user_type"`
-}
+type Recharge = shared.Recharge
+
+type Withdraw = shared.Withdraw
 type GlobalRegister struct {
 	AddressState map[string]bool
 	Lock         sync.RWMutex
