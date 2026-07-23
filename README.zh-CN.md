@@ -36,7 +36,7 @@
 
 ## 环境要求
 
-- Go `1.18+`
+- Go `1.26.2`
 - MySQL
 - MongoDB
 - Redis
