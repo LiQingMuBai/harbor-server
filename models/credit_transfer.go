@@ -56,8 +56,12 @@ func (m *CreditModel) GetWalletList(uid int) db.DB_LIST_RESULT {
 	return creditTransferSvc.GetWalletList(uid)
 }
 
-func (m *CreditModel) TransFer(uid int, trans *TransferRequest) *BaseResponse {
+func (m *CreditModel) Transfer(uid int, trans *TransferRequest) *BaseResponse {
 	return creditTransferSvc.Transfer(uid, trans)
+}
+
+func (m *CreditModel) TransFer(uid int, trans *TransferRequest) *BaseResponse {
+	return m.Transfer(uid, trans)
 }
 
 func (m *CreditModel) ExchangeAccount(uid int, rq *ExchangeAccountRequest) *BaseResponse {
@@ -68,10 +72,18 @@ func (m *CreditModel) ExchangeAccount2(uid int, rq *ExchangeAccountRequest2) *Ba
 	return creditTransferSvc.ExchangeAccount2(uid, rq)
 }
 
-func (m *CreditModel) TransFerLogs(uid int, rq *TransFerLogsRequest) *PageBaseResponse {
+func (m *CreditModel) TransferLogs(uid int, rq *TransferLogsRequest) *PageBaseResponse {
 	return creditTransferSvc.TransferLogs(uid, rq)
 }
 
-func (m *CreditModel) TransFerDetail(uid int, sn string) db.DB_ROW_RESULT {
+func (m *CreditModel) TransFerLogs(uid int, rq *TransFerLogsRequest) *PageBaseResponse {
+	return m.TransferLogs(uid, rq)
+}
+
+func (m *CreditModel) TransferDetail(uid int, sn string) db.DB_ROW_RESULT {
 	return creditTransferSvc.TransferDetail(uid, sn)
+}
+
+func (m *CreditModel) TransFerDetail(uid int, sn string) db.DB_ROW_RESULT {
+	return m.TransferDetail(uid, sn)
 }

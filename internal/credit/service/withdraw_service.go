@@ -66,18 +66,18 @@ func (s *WithdrawService) MakeOrderSN(uid int) string {
 	return fmt.Sprintf("%s%s%s%d", creditdomain.WITHDRAW_ORDER_PREFIX, timestr, uidstr, 10+rand.Intn(89))
 }
 
-func (s *WithdrawService) CreateWithdraw(uid int, rq *creditdomain.WithDrawRequest) *creditdomain.RechargeResponse {
+func (s *WithdrawService) CreateWithdraw(uid int, rq *creditdomain.WithdrawRequest) *creditdomain.RechargeResponse {
 	rs := new(creditdomain.RechargeResponse)
 	sn := s.MakeOrderSN(uid)
 	ntime := utils.GetNow()
 	uinfo := s.user.GetBaseInfo(uid)
 	if uinfo == nil {
-		rs.State = creditdomain.WIDTHDRAW_STATE_ERROR_USER
+		rs.State = creditdomain.WITHDRAW_STATE_ERROR_USER
 		rs.Msg = "error user"
 		return rs
 	}
 	if uinfo.IsWithDraw != 1 {
-		rs.State = creditdomain.WIDTHDRAW_STATE_ERROR_LOCKED
+		rs.State = creditdomain.WITHDRAW_STATE_ERROR_LOCKED
 		rs.Msg = "user not allowed withdraw"
 		return rs
 	}
@@ -91,12 +91,12 @@ func (s *WithdrawService) CreateWithdraw(uid int, rq *creditdomain.WithDrawReque
 			return rs
 		}
 		if rq.Amount < rechargeConfig.Min {
-			rs.State = creditdomain.WIDTHDRAW_STATE_MIN
+			rs.State = creditdomain.WITHDRAW_STATE_MIN
 			rs.Msg = "too min"
 			return rs
 		}
 	} else if rq.Amount < s.system.GetMinWithdraw() {
-		rs.State = creditdomain.WIDTHDRAW_STATE_MIN
+		rs.State = creditdomain.WITHDRAW_STATE_MIN
 		rs.Msg = "too min"
 		return rs
 	}
@@ -112,7 +112,7 @@ func (s *WithdrawService) CreateWithdraw(uid int, rq *creditdomain.WithDrawReque
 		} else {
 			bankInfo = s.bank.GetBankInfo(uid)
 			if bankInfo == nil {
-				rs.State = creditdomain.WIDTHDRAW_STATE_ERROR_NOTBINDBANK
+				rs.State = creditdomain.WITHDRAW_STATE_ERROR_NOTBINDBANK
 				rs.Msg = "not bind bank info"
 				return rs
 			}
@@ -121,7 +121,7 @@ func (s *WithdrawService) CreateWithdraw(uid int, rq *creditdomain.WithDrawReque
 
 	factCredit := rq.Amount * rate
 	if uinfo.Credit < factCredit {
-		rs.State = creditdomain.WIDTHDRAW_STATE_NOTENOUGH
+		rs.State = creditdomain.WITHDRAW_STATE_NOTENOUGH
 		rs.Msg = "no more credit"
 		return rs
 	}

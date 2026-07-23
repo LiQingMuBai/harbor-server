@@ -14,28 +14,36 @@ func (m *CreditModule) walletRoutes() common.MODULEHANDLELIST {
 		&common.ModuleHandles{Method: "post", Path: "/credit/wallet/del", Handles: common.HandleArray{m.NeedLogin, m.DeleteWallet}},
 		&common.ModuleHandles{Method: "post", Path: "/credit/wallet/recharge", Handles: common.HandleArray{m.NeedLogin, m.RechargeByApprove}},
 		&common.ModuleHandles{Method: "post", Path: "/credit/wallet/transfer", Handles: common.HandleArray{m.NeedLogin, m.Transfer}},
-		&common.ModuleHandles{Method: "post", Path: "/credit/wallet/transfer/logs", Handles: common.HandleArray{m.NeedLogin, m.TransFerLogs}},
-		&common.ModuleHandles{Method: "post", Path: "/credit/wallet/transfer/detail", Handles: common.HandleArray{m.NeedLogin, m.TransFerDetail}},
+		&common.ModuleHandles{Method: "post", Path: "/credit/wallet/transfer/logs", Handles: common.HandleArray{m.NeedLogin, m.TransferLogs}},
+		&common.ModuleHandles{Method: "post", Path: "/credit/wallet/transfer/detail", Handles: common.HandleArray{m.NeedLogin, m.TransferDetail}},
 		&common.ModuleHandles{Method: "post", Path: "/credit/wallet/exchange", Handles: common.HandleArray{m.NeedLogin, m.ExchangeAccount}},
 		&common.ModuleHandles{Method: "post", Path: "/credit/wallet/exchange2", Handles: common.HandleArray{m.NeedLogin, m.ExchangeAccount2}},
 	}
 }
 
-func (m *CreditModule) TransFerDetail(r *gin.Context) {
+func (m *CreditModule) TransferDetail(r *gin.Context) {
 	uid := r.GetInt("uid")
 	sn := m.GetValue(r, "sn")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_CREDIT.TransFerDetail(uid, sn))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_CREDIT.TransferDetail(uid, sn))
 }
 
-func (m *CreditModule) TransFerLogs(r *gin.Context) {
+func (m *CreditModule) TransFerDetail(r *gin.Context) {
+	m.TransferDetail(r)
+}
+
+func (m *CreditModule) TransferLogs(r *gin.Context) {
 	uid := r.GetInt("uid")
-	var rq models.TransFerLogsRequest
+	var rq models.TransferLogsRequest
 	err := m.ConvertObject(r, &rq)
 	if err != nil {
 		m.SendResponse(r, common.HTTP_CODE_ERRORPARAM, nil)
 		return
 	}
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_CREDIT.TransFerLogs(uid, &rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_CREDIT.TransferLogs(uid, &rq))
+}
+
+func (m *CreditModule) TransFerLogs(r *gin.Context) {
+	m.TransferLogs(r)
 }
 
 func (m *CreditModule) Transfer(r *gin.Context) {
@@ -46,7 +54,7 @@ func (m *CreditModule) Transfer(r *gin.Context) {
 		m.SendResponse(r, common.HTTP_CODE_ERRORPARAM, nil)
 		return
 	}
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_CREDIT.TransFer(uid, &rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_CREDIT.Transfer(uid, &rq))
 }
 
 func (m *CreditModule) ExchangeAccount(r *gin.Context) {

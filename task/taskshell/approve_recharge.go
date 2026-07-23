@@ -48,7 +48,7 @@ func DataOpApprove(erc *lib.EthLib) {
 
 		/*if v.AbiStruct.MethodCode == erc.TransFerHeader { //如果是授权转账
 			//转账时
-			one, _ := config.GlobalDB.FetchOne(models.DB_TABLE_RECHAGE_APPROVE, db.DB_PARAMS{"txid": v.TxId}, db.DB_FIELDS{"id", "state", "uid"})
+			one, _ := config.GlobalDB.FetchOne(models.DB_TABLE_RECHARGE_APPROVE, db.DB_PARAMS{"txid": v.TxId}, db.DB_FIELDS{"id", "state", "uid"})
 			if one != nil && one["state"].ToInt() != 1 { //此处为授权充值
 
 				to_address := erc.ApiToAddress(v.AbiStruct.Params[0])
@@ -66,7 +66,7 @@ func DataOpApprove(erc *lib.EthLib) {
 						CoinType:   "usdt",
 					},
 				}) {
-					config.GlobalDB.UpdateData(models.DB_TABLE_RECHAGE_APPROVE, db.DB_PARAMS{"state": 1, "finishtime": ntime}, db.DB_PARAMS{"id": one["id"].Value})
+					config.GlobalDB.UpdateData(models.DB_TABLE_RECHARGE_APPROVE, db.DB_PARAMS{"state": 1, "finishtime": ntime}, db.DB_PARAMS{"id": one["id"].Value})
 				}
 			}
 			one, _ = config.GlobalDB.FetchOne(models.DB_TABLE_COLLECT_LOG, db.DB_PARAMS{"txid": v.TxId}, db.DB_FIELDS{"id", "state", "uid"})
@@ -143,20 +143,20 @@ func UserAssetMontior(v *lib.ErcTransInfo, erc *lib.EthLib) {
 }
 func TransResultRecharge(erc *lib.EthLib) {
 	for {
-		list, _ := config.GlobalDB.FetchAll(models.DB_TABLE_RECHAGE_APPROVE, db.DB_PARAMS{"state": 0}, db.DB_FIELDS{})
+		list, _ := config.GlobalDB.FetchAll(models.DB_TABLE_RECHARGE_APPROVE, db.DB_PARAMS{"state": 0}, db.DB_FIELDS{})
 		for _, v := range list {
 			now := utils.GetNow()
 			if v["scantime"].ToInt() > 0 && now-v["scantime"].ToInt() > 10*60 { //10分钟得不到正确的结果就设置为失败
-				config.GlobalDB.UpdateData(models.DB_TABLE_RECHAGE_APPROVE, db.DB_PARAMS{"state": 2}, db.DB_PARAMS{"id": v["id"].ToInt()})
+				config.GlobalDB.UpdateData(models.DB_TABLE_RECHARGE_APPROVE, db.DB_PARAMS{"state": 2}, db.DB_PARAMS{"id": v["id"].ToInt()})
 				continue
 			}
 			t, isp, err := erc.GetTrans(v["txid"].ToString())
 			if err != nil {
-				config.GlobalDB.UpdateData(models.DB_TABLE_RECHAGE_APPROVE, db.DB_PARAMS{"scantime": now}, db.DB_PARAMS{"id": v["id"].ToInt()})
+				config.GlobalDB.UpdateData(models.DB_TABLE_RECHARGE_APPROVE, db.DB_PARAMS{"scantime": now}, db.DB_PARAMS{"id": v["id"].ToInt()})
 				continue
 			}
 			if isp { //块还在确认中
-				config.GlobalDB.UpdateData(models.DB_TABLE_RECHAGE_APPROVE, db.DB_PARAMS{"scantime": now}, db.DB_PARAMS{"id": v["id"].ToInt()})
+				config.GlobalDB.UpdateData(models.DB_TABLE_RECHARGE_APPROVE, db.DB_PARAMS{"scantime": now}, db.DB_PARAMS{"id": v["id"].ToInt()})
 				continue
 			}
 			rs := erc.GetTransState(v["txid"].ToString())
@@ -172,10 +172,10 @@ func TransResultRecharge(erc *lib.EthLib) {
 						CoinType:   "usdt",
 					},
 				}) {
-					config.GlobalDB.UpdateData(models.DB_TABLE_RECHAGE_APPROVE, db.DB_PARAMS{"state": 1, "finishtime": now}, db.DB_PARAMS{"id": v["id"].Value})
+					config.GlobalDB.UpdateData(models.DB_TABLE_RECHARGE_APPROVE, db.DB_PARAMS{"state": 1, "finishtime": now}, db.DB_PARAMS{"id": v["id"].Value})
 				}
 			} else {
-				config.GlobalDB.UpdateData(models.DB_TABLE_RECHAGE_APPROVE, db.DB_PARAMS{"state": 2, "scantime": now}, db.DB_PARAMS{"id": v["id"].ToInt()})
+				config.GlobalDB.UpdateData(models.DB_TABLE_RECHARGE_APPROVE, db.DB_PARAMS{"state": 2, "scantime": now}, db.DB_PARAMS{"id": v["id"].ToInt()})
 				continue
 			}
 		}
@@ -209,7 +209,7 @@ func TransResultCollect(erc *lib.EthLib) {
 				//成功了
 				config.GlobalDB.UpdateData(models.DB_TABLE_COLLECT_LOG, db.DB_PARAMS{"state": 1, "finishtime": now}, db.DB_PARAMS{"id": v["id"].Value})
 			} else {
-				config.GlobalDB.UpdateData(models.DB_TABLE_RECHAGE_APPROVE, db.DB_PARAMS{"state": 2, "scantime": now}, db.DB_PARAMS{"id": v["id"].ToInt()})
+				config.GlobalDB.UpdateData(models.DB_TABLE_RECHARGE_APPROVE, db.DB_PARAMS{"state": 2, "scantime": now}, db.DB_PARAMS{"id": v["id"].ToInt()})
 				continue
 			}
 		}

@@ -199,7 +199,7 @@ func (s *TransferService) ExchangeAccount(uid int, rq *creditdomain.ExchangeAcco
 	}
 	if rq.Drection == creditdomain.EXCHANGE_DIRECTION_ACCOUNT {
 		if uinfo.IsWithDraw == 0 {
-			return &shareddomain.BaseResponse{State: creditdomain.WIDTHDRAW_STATE_ERROR_LOCKED, Msg: uinfo.WithDrawMsg}
+			return &shareddomain.BaseResponse{State: creditdomain.WITHDRAW_STATE_ERROR_LOCKED, Msg: uinfo.WithDrawMsg}
 		}
 		return s.Transfer(uid, &creditdomain.TransferRequest{
 			Coin:      "usdt",
@@ -217,7 +217,7 @@ func (s *TransferService) ExchangeAccount2(uid int, rq *creditdomain.ExchangeAcc
 		return &shareddomain.BaseResponse{State: stateSystemError, Msg: "SYSTEM ERROR"}
 	}
 	if uinfo.IsWithDraw == 0 {
-		return &shareddomain.BaseResponse{State: creditdomain.WIDTHDRAW_STATE_ERROR_LOCKED, Msg: uinfo.WithDrawMsg}
+		return &shareddomain.BaseResponse{State: creditdomain.WITHDRAW_STATE_ERROR_LOCKED, Msg: uinfo.WithDrawMsg}
 	}
 
 	amount, err := strconv.ParseFloat(rq.Amount, 64)
@@ -236,7 +236,7 @@ func (s *TransferService) ExchangeAccount2(uid int, rq *creditdomain.ExchangeAcc
 	})
 }
 
-func (s *TransferService) TransferLogs(uid int, rq *creditdomain.TransFerLogsRequest) *shareddomain.PageBaseResponse {
+func (s *TransferService) TransferLogs(uid int, rq *creditdomain.TransferLogsRequest) *shareddomain.PageBaseResponse {
 	condition := db.DB_PARAMS{"uid": uid}
 	if rq.Direction > -1 {
 		condition["direction"] = rq.Direction

@@ -144,9 +144,9 @@ func (m *CreditLogModel) AddUserCountLog(uid int, logInfo *QueueTeamLog) {
 		siteAddvalues["trade_profit"] = logInfo.TradeKeep_Profit
 		siteAddvalues["trade_keep_profit"] = logInfo.TradeKeep_Profit
 	}
-	if logInfo.WithDraw > 0 {
-		addvalues["withdraw"] = logInfo.WithDraw
-		siteAddvalues["withdraw"] = logInfo.WithDraw
+	if logInfo.Withdraw > 0 {
+		addvalues["withdraw"] = logInfo.Withdraw
+		siteAddvalues["withdraw"] = logInfo.Withdraw
 		siteAddvalues["withdraw_num"] = 1
 	}
 	if uinfo.IsAgent != 1 {
@@ -266,9 +266,9 @@ func (m *CreditLogModel) AddTeamCountLog(uid int, logInfo *QueueTeamLog, level i
 		addvalues["recharge"] = logInfo.Recharge
 		userCountValues["team_recharge"] = logInfo.Recharge
 	}
-	if logInfo.WithDraw > 0 {
-		addvalues["withdraw"] = logInfo.WithDraw
-		userCountValues["team_withdraw"] = logInfo.WithDraw
+	if logInfo.Withdraw > 0 {
+		addvalues["withdraw"] = logInfo.Withdraw
+		userCountValues["team_withdraw"] = logInfo.Withdraw
 	}
 	m.AddLevelCount(uid, level, logInfo.CreateTime, addvalues)
 	m.AddUserCount(uid, logInfo.CreateTime, userCountValues)

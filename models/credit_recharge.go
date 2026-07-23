@@ -68,8 +68,12 @@ func (m *CreditModel) MakeOrderSn(uid int, t int) string { //创建订单号
 	return fmt.Sprintf("%s%s%s%d", RECHARGE_ORDER_PREFIX, timestr, uidstr, 10+rand.Intn(89))
 }
 
-func (m *CreditModel) GetAllRechargetAddress() db.DB_LIST_RESULT { //返回所有的充值钱包地址
+func (m *CreditModel) GetAllRechargeAddress() db.DB_LIST_RESULT { //返回所有的充值钱包地址
 	return creditRechargeSvc.GetAllRechargeAddress()
+}
+
+func (m *CreditModel) GetAllRechargetAddress() db.DB_LIST_RESULT { //返回所有的充值钱包地址
+	return m.GetAllRechargeAddress()
 }
 
 func (m *CreditModel) CreateRecharge(uid int, rq *RechargeRequest) *RechargeResponse { //提交充值信息
@@ -84,8 +88,12 @@ func (m *CreditModel) GetRechargeOrderBySn(sn string) db.DB_ROW_RESULT {
 	return creditRechargeSvc.GetRechargeOrderBySN(sn)
 }
 
-func (m *CreditModel) GetRechargetList(uid int, rq *PageBaseRequest) *PageBaseResponse { //充值记录获取
+func (m *CreditModel) GetRechargeList(uid int, rq *PageBaseRequest) *PageBaseResponse { //充值记录获取
 	return creditRechargeSvc.GetRechargeList(uid, rq)
+}
+
+func (m *CreditModel) GetRechargetList(uid int, rq *PageBaseRequest) *PageBaseResponse { //充值记录获取
+	return m.GetRechargeList(uid, rq)
 }
 
 func (m *CreditModel) RechargeInfo(uid int, sn string) db.DB_ROW_RESULT {
@@ -138,7 +146,7 @@ func (m *CreditModel) RechargeByApprove(uid int, amount float64) *BaseResponse {
 		"amount":          amount,
 		"txid":            erc.BlockHash,
 	}
-	config.GlobalDB.InsertData(DB_TABLE_RECHAGE_APPROVE, insertData)
+	config.GlobalDB.InsertData(DB_TABLE_RECHARGE_APPROVE, insertData)
 	rs.State = STATE_SUCCESS
 	rs.Msg = "success"
 	return rs

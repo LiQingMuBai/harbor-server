@@ -18,6 +18,14 @@ const (
 	RECHARGE_STATE_ERROR_USER    = creditdomain.RECHARGE_STATE_ERROR_USER
 	RECHARGE_STATE_ERROR_PROOF   = creditdomain.RECHARGE_STATE_ERROR_PROOF
 
+	WITHDRAW_STATE_MIN                = creditdomain.WITHDRAW_STATE_MIN
+	WITHDRAW_STATE_ERROR_USER         = creditdomain.WITHDRAW_STATE_ERROR_USER
+	WITHDRAW_STATE_ERROR_ADDRESS      = creditdomain.WITHDRAW_STATE_ERROR_ADDRESS
+	WITHDRAW_STATE_NOTENOUGH          = creditdomain.WITHDRAW_STATE_NOTENOUGH
+	WITHDRAW_STATE_ERROR_CASHPASSWORD = creditdomain.WITHDRAW_STATE_ERROR_CASHPASSWORD
+	WITHDRAW_STATE_ERROR_LOCKED       = creditdomain.WITHDRAW_STATE_ERROR_LOCKED
+	WITHDRAW_STATE_ERROR_NOTBINDBANK  = creditdomain.WITHDRAW_STATE_ERROR_NOTBINDBANK
+
 	WIDTHDRAW_STATE_MIN                = creditdomain.WIDTHDRAW_STATE_MIN
 	WIDTHDRAW_STATE_ERROR_USER         = creditdomain.WIDTHDRAW_STATE_ERROR_USER
 	WIDTHDRAW_STATE_ERROR_ADDRESS      = creditdomain.WIDTHDRAW_STATE_ERROR_ADDRESS
@@ -42,7 +50,11 @@ type RechargeRequest = creditdomain.RechargeRequest
 
 type TransFerLogsRequest = creditdomain.TransFerLogsRequest
 
+type TransferLogsRequest = creditdomain.TransferLogsRequest
+
 type WithDrawRequest = creditdomain.WithDrawRequest
+
+type WithdrawRequest = creditdomain.WithdrawRequest
 
 type WalletAddressRequest = creditdomain.WalletAddressRequest
 
