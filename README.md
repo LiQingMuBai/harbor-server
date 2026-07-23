@@ -118,9 +118,28 @@ Run tests:
 go test ./...
 ```
 
+## Docker Deployment
+
+The repository now includes Docker deployment files for `admin`, `http`, and `task`.
+
+1. Copy the Docker environment template:
+
+```bash
+cp .env.docker.example .env.docker
+```
+
+2. Fill in the MySQL, MongoDB, Redis, and port settings.
+
+3. Start the services:
+
+```bash
+docker compose --env-file .env.docker up -d --build http admin task
+```
+
 ## Additional Docs
 
 - [Deployment Guide](./docs/deployment.zh-CN.md)
+- [Docker Deployment Guide](./docs/docker-deployment.md)
 - [API / Service Notes](./docs/services.zh-CN.md)
 - [Refactor Roadmap](./docs/refactor-roadmap.zh-CN.md)
 

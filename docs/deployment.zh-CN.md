@@ -183,7 +183,134 @@ go run ./cmd/tools/lucky
 go run ./cmd/tools/recover-kline
 ```
 
-## 9. 生产部署建议
+## 9. Docker 部署
+
+当前仓库已经内置以下 Docker 部署文件：
+
+- `Dockerfile`
+- `docker-compose.yml`
+- `.env.docker.example`
+- `.dockerignore`
+
+### 9.1 适用场景
+
+当前 Docker 方案默认适合以下部署结构：
+
+- `admin`、`http`、`task` 运行在 Docker 容器中
+- `Redis` 使用 compose 内置容器
+- `MySQL` 使用外部实例，例如阿里云 RDS
+- `MongoDB` 使用外部实例，例如阿里云 MongoDB
+
+说明：
+
+- `http` 容器实际运行 `cmd/api`
+- `admin` 容器实际运行 `cmd/admin`
+- `task` 容器实际运行 `cmd/task`
+
+### 9.2 准备容器配置
+
+复制模板：
+
+```bash
+cp .env.docker.example .env.docker
+```
+
+至少补齐以下配置：
+
+- `DB_HOST`、`DB_PORT`、`DB_USER`、`DB_PASS`、`DB_NAME`
+- `MONGO_URI`、`MONGO_DBNAME`
+- `API_PORT`、`API_RPC_PORT`
+- `ADMIN_PORT`
+- `TASK_MODE`
+
+如果使用 compose 内置 Redis，推荐保持：
+
+- `REDIS_HOST=redis`
+- `REDIS_PORT=6379`
+- `REDIS_PASSWORD=` 可空，或按需设置
+
+Docker 网络下有两个关键配置必须注意：
+
+- `API_LOCAL_IP=0.0.0.0`
+- `RPC_CLIENTS=9010=http`
+
+原因：
+
+- `cmd/api` 在容器内需要对其他容器暴露 RPC，所以不能继续绑定 `127.0.0.1`
+- `cmd/admin` 不能再通过本机回环地址访问 API RPC，必须改成 compose 服务名 `http`
+
+### 9.3 启动命令
+
+构建并启动：
+
+```bash
+docker compose --env-file .env.docker up -d --build redis http admin task
+```
+
+查看状态：
+
+```bash
+docker compose --env-file .env.docker ps
+```
+
+查看日志：
+
+```bash
+docker compose --env-file .env.docker logs -f redis
+docker compose --env-file .env.docker logs -f http
+docker compose --env-file .env.docker logs -f admin
+docker compose --env-file .env.docker logs -f task
+```
+
+停止服务：
+
+```bash
+docker compose --env-file .env.docker down
+```
+
+### 9.4 服务与端口
+
+- `redis`：仅在 compose 网络中使用，数据持久化到 `redis_data`
+- `http`：对外暴露 `${API_PORT}`，容器内同时暴露 `${API_RPC_PORT}` 给 `admin`
+- `admin`：对外暴露 `${ADMIN_PORT}`
+- `task`：不对外暴露端口
+
+### 9.5 Task 模式
+
+默认：
+
+```env
+TASK_MODE=task
+```
+
+如果你要跑其他模式，修改 `.env.docker` 后重建 `task` 即可：
+
+```env
+TASK_MODE=data
+```
+
+或：
+
+```env
+TASK_MODE=approve
+```
+
+然后执行：
+
+```bash
+docker compose --env-file .env.docker up -d --build task
+```
+
+### 9.6 Docker 部署注意事项
+
+- `admin` 依赖 `http` 的内部 RPC，所以 compose 内保留了启动依赖关系
+- `http`、`admin`、`task` 都会等待 `redis` 健康后再启动
+- 日志目录挂载到宿主机 `./logs`
+- 当前 compose 不负责初始化 MySQL、MongoDB
+- 如果你的 MySQL 和 MongoDB 已经放在阿里云，只需要把 `.env.docker` 填成真实地址即可
+- 宿主机需要提前安装 Docker 和 Docker Compose
+
+## 10. 生产部署建议
 
 ### 进程管理
 
@@ -216,9 +343,10 @@ go run ./cmd/tools/recover-kline
 - `WS_ADMIN_PASS` 必须单独配置
 - 生产环境必须替换所有默认地址与示例值
 
-## 10. 发布检查清单
+## 11. 发布检查清单
 
 - `.env` 已填写且未提交
+- Docker 部署时 `.env.docker` 已填写且未提交
 - MySQL / MongoDB / Redis 可连通
 - `API_LOCAL_IP` 与 `RPC_CLIENTS` 配置一致
 - `CDN_DOMAIN` 指向真实外部访问域名

@@ -118,9 +118,28 @@ go build ./...
 go test ./...
 ```
 
+## Docker 部署
+
+项目现在提供 `admin`、`http`、`task` 三个服务的 Docker 部署文件。
+
+1. 复制容器配置模板：
+
+```bash
+cp .env.docker.example .env.docker
+```
+
+2. 填写 MySQL、MongoDB、Redis 和端口配置。
+
+3. 启动：
+
+```bash
+docker compose --env-file .env.docker up -d --build http admin task
+```
+
 ## 扩展文档
 
 - [部署文档](./docs/deployment.zh-CN.md)
+- [Docker 部署文档](./docs/docker-deployment.zh-CN.md)
 - [API / 服务说明](./docs/services.zh-CN.md)
 - [重构路线图](./docs/refactor-roadmap.zh-CN.md)
 

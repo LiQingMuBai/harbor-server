@@ -1,0 +1,108 @@
+services:
+  redis:
+    image: redis:7-alpine
+    command:
+      [
+        "sh",
+        "-c",
+        "if [ -n \"$REDIS_PASSWORD\" ]; then exec redis-server --appendonly yes --requirepass \"$REDIS_PASSWORD\"; else exec redis-server --appendonly yes; fi",
+      ]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    init: true
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "if [ -n \"$REDIS_PASSWORD\" ]; then redis-cli -a \"$REDIS_PASSWORD\" ping; else redis-cli ping; fi",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  http:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: ./cmd/api
+    image: harbor-server:http
+    env_file:
+      - ./.env.docker
+    environment:
+      API_LOCAL_IP: 0.0.0.0
+      RPC_CLIENTS: ${RPC_CLIENTS:-9010=http}
+    ports:
+      - "${API_PORT:-9001}:${API_PORT:-9001}"
+    expose:
+      - "${API_RPC_PORT:-9010}"
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    init: true
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 ${API_PORT:-9001}"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: ./cmd/admin
+    image: harbor-server:admin
+    env_file:
+      - ./.env.docker
+    environment:
+      RPC_CLIENTS: ${RPC_CLIENTS:-9010=http}
+    ports:
+      - "${ADMIN_PORT:-8080}:${ADMIN_PORT:-8080}"
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    init: true
+    depends_on:
+      redis:
+        condition: service_healthy
+      http:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 ${ADMIN_PORT:-8080}"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  task:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: ./cmd/task
+    image: harbor-server:task
+    env_file:
+      - ./.env.docker
+    environment:
+      TASK_MODE: ${TASK_MODE:-task}
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    init: true
+    depends_on:
+      redis:
+        condition: service_healthy
+      http:
+        condition: service_healthy
+
+volumes:
+  redis_data:

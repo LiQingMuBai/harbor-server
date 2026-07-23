@@ -1,6 +1,12 @@
+.git
+.idea
+.DS_Store
+logs
+bin
+tmp
+dist
 .env
 .env.*
 !.env.example
 !.env.docker.example
 config/config.json
-.idea/
