@@ -3,10 +3,29 @@ package handler
 import (
 	"cointrade/http/common"
 	shareddomain "cointrade/internal/domain/shared"
+	userdomain "cointrade/internal/domain/user"
+	userprofilerepo "cointrade/internal/userprofile/repo"
+	userprofileservice "cointrade/internal/userprofile/service"
+	"cointrade/lib/db"
 	"cointrade/models"
 
 	"github.com/gin-gonic/gin"
 )
+
+var apiUserProfileSvc = userprofileservice.NewService(
+	userprofilerepo.NewDBRepository(),
+	apiUserProfileGateway{},
+)
+
+type apiUserProfileGateway struct{}
+
+func (apiUserProfileGateway) Update(uid int, data db.DB_PARAMS) {
+	models.MODEL_USER.Update(uid, data)
+}
+
+func (apiUserProfileGateway) ClearCache(uid int) {
+	models.MODEL_USER.ClearCache(uid)
+}
 
 func (m *UserModule) profileRoutes() common.MODULEHANDLELIST {
 	return common.MODULEHANDLELIST{
@@ -20,12 +39,12 @@ func (m *UserModule) profileRoutes() common.MODULEHANDLELIST {
 
 func (m *UserModule) ConvertMoney(r *gin.Context) {
 	uid := r.GetInt("uid")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.ConvertMoney(uid))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, apiUserProfileSvc.ConvertMoney(uid))
 }
 
 func (m *UserModule) GetExplodeState(r *gin.Context) {
 	uid := r.GetInt("uid")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.GetExplodeState(uid))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, apiUserProfileSvc.GetExplodeState(uid))
 }
 
 func (m *UserModule) UpdateProfile(r *gin.Context) {
@@ -36,7 +55,7 @@ func (m *UserModule) UpdateProfile(r *gin.Context) {
 		m.SendResponse(r, common.HTTP_CODE_ERRORPARAM, nil)
 		return
 	}
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.UpdateProfile(uid, &rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, apiUserProfileSvc.UpdateProfile(uid, (*userdomain.UpdateProfileRequest)(&rq), models.MODEL_USER.MakeCacheId))
 }
 
 func (m *UserModule) Update(r *gin.Context) {
@@ -51,7 +70,7 @@ func (m *UserModule) Update(r *gin.Context) {
 
 func (m *UserModule) GetUserInfo(r *gin.Context) {
 	uid := r.GetInt("uid")
-	rs := models.MODEL_USER.GetBaseInfo(uid)
+	rs := apiUserProfileSvc.GetBaseInfo(uid, models.MODEL_USER.MakeCacheId)
 	rs.CashPassword = ""
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, rs)
 }
@@ -59,6 +78,6 @@ func (m *UserModule) GetUserInfo(r *gin.Context) {
 func (m *UserModule) GetUserCount(r *gin.Context) {
 	uid := r.GetInt("uid")
 	t := m.GetInt(r, "type")
-	rs := models.MODEL_USER.GetUserCount(uid, t)
+	rs := apiUserProfileSvc.GetUserCount(uid, t)
 	m.SendResponse(r, common.HTTP_CODE_SUCCESS, rs)
 }

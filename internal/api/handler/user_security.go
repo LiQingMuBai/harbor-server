@@ -7,6 +7,10 @@ import (
 	userdomain "cointrade/internal/domain/user"
 	useridentityrepo "cointrade/internal/useridentity/repo"
 	useridentityservice "cointrade/internal/useridentity/service"
+	usermarketingrepo "cointrade/internal/usermarketing/repo"
+	usermarketingservice "cointrade/internal/usermarketing/service"
+	usersecurityrepo "cointrade/internal/usersecurity/repo"
+	usersecurityservice "cointrade/internal/usersecurity/service"
 	"cointrade/lib/db"
 	"cointrade/lib/notify"
 	"cointrade/models"
@@ -63,6 +67,55 @@ func (apiUserSecurityIdentityNotifier) IncrementNotify(typ int, num int) {
 	notify.NOTIFY.AddNotify(&notify.NotifyItem{Type: typ, Num: num})
 }
 
+var apiUserSecuritySvc = usersecurityservice.NewService(
+	usersecurityrepo.NewDBRepository(),
+	apiUserSecurityGateway{},
+	apiUserSecurityCodeGateway{},
+)
+
+type apiUserSecurityGateway struct{}
+
+func (apiUserSecurityGateway) GetBaseInfo(uid int) *userdomain.UserBaseInfo {
+	return models.MODEL_USER.GetBaseInfo(uid)
+}
+
+func (apiUserSecurityGateway) Update(uid int, data db.DB_PARAMS) {
+	models.MODEL_USER.Update(uid, data)
+}
+
+type apiUserSecurityCodeGateway struct{}
+
+func (apiUserSecurityCodeGateway) GetBindSMSCode(uid int, phone string) string {
+	return models.MODEL_CODE.GetBindSmsCode(uid, phone)
+}
+
+func (apiUserSecurityCodeGateway) GetEmailBindCode(email string) string {
+	return models.MODEL_CODE.GetEmailCodeBind(email)
+}
+
+var apiUserSecurityMarketingSvc = usermarketingservice.NewService(
+	usermarketingrepo.NewDBRepository(),
+	apiUserSecurityMarketingGateway{},
+)
+
+type apiUserSecurityMarketingGateway struct{}
+
+func (apiUserSecurityMarketingGateway) GetBaseInfo(uid int) *userdomain.UserBaseInfo {
+	return models.MODEL_USER.GetBaseInfo(uid)
+}
+
+func (apiUserSecurityMarketingGateway) AddCredit(uid int, value *userdomain.CreditValue) bool {
+	return models.MODEL_USER.AddCredit(uid, value)
+}
+
+func (apiUserSecurityMarketingGateway) ClearCache(uid int) {
+	models.MODEL_USER.ClearCache(uid)
+}
+
+func (apiUserSecurityMarketingGateway) EncodePassword(password string) string {
+	return models.MODEL_USER.EncodePassword(password)
+}
+
 func (m *UserModule) securityRoutes() common.MODULEHANDLELIST {
 	return common.MODULEHANDLELIST{
 		&common.ModuleHandles{Method: "post", Path: "/user/changepass", Handles: common.HandleArray{m.NeedLogin, m.ChangePass}},
@@ -94,7 +147,7 @@ func (m *UserModule) UpdateCashPassword(r *gin.Context) {
 		m.SendResponse(r, common.HTTP_CODE_ERRORPARAM, nil)
 		return
 	}
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.UpdateCashPassword(uid, &rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, apiUserSecuritySvc.UpdateCashPassword(uid, (*userdomain.UpdateCashPasswordRequest)(&rq)))
 }
 
 func (m *UserModule) AuthInfo(r *gin.Context) {
@@ -139,13 +192,13 @@ func (m *UserModule) SetCashPassword(r *gin.Context) {
 		m.SendResponse(r, common.HTTP_CODE_ERRORPARAM, nil)
 		return
 	}
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.ChangeCashPassword(uid, &rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, apiUserSecuritySvc.ChangeCashPassword(uid, (*userdomain.SetCashPasswordRequest)(&rq)))
 }
 
 func (m *UserModule) ClearIncome(r *gin.Context) {
 	uid := r.GetInt("uid")
 	password := m.GetValue(r, "password")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.ClearIncome(uid, password))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, apiUserSecurityMarketingSvc.ClearIncome(uid, password))
 }
 
 func (m *UserModule) SendBindSms(r *gin.Context) {
@@ -158,7 +211,7 @@ func (m *UserModule) BindPhone(r *gin.Context) {
 	uid := r.GetInt("uid")
 	phone := strings.TrimSpace(m.GetValue(r, "phone"))
 	code := strings.TrimSpace(m.GetValue(r, "code"))
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.BindPhone(uid, phone, code))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, apiUserSecuritySvc.BindPhone(uid, phone, code))
 }
 
 func (m *UserModule) SendBindEmail(r *gin.Context) {
@@ -170,5 +223,5 @@ func (m *UserModule) BindEmail(r *gin.Context) {
 	uid := r.GetInt("uid")
 	email := strings.TrimSpace(m.GetValue(r, "email"))
 	code := strings.TrimSpace(m.GetValue(r, "code"))
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.BindEmail(uid, email, code))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, apiUserSecuritySvc.BindEmail(uid, email, code))
 }
