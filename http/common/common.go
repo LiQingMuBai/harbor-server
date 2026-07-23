@@ -1,7 +1,10 @@
 package common
 
 import (
+	userauthrepo "cointrade/internal/userauth/repo"
+	userauthservice "cointrade/internal/userauth/service"
 	"cointrade/models"
+	"cointrade/lib/db"
 	"cointrade/utils"
 	"encoding/json"
 	"fmt"
@@ -23,6 +26,31 @@ type HandleArray []gin.HandlerFunc
 type MODULEHANDLELIST []*ModuleHandles
 
 var ModuleGlobal ModuleBase
+var httpUserAuthSvc = userauthservice.NewService(
+	userauthrepo.NewDBRepository(),
+	modelsUserGateway{},
+	modelsWalletGateway{},
+)
+
+type modelsUserGateway struct{}
+
+func (modelsUserGateway) GetBaseInfo(uid int) *models.UserBaseInfo {
+	return models.MODEL_USER.GetBaseInfo(uid)
+}
+
+func (modelsUserGateway) Update(uid int, data db.DB_PARAMS) {
+	models.MODEL_USER.Update(uid, data)
+}
+
+func (modelsUserGateway) ClearCache(uid int) {
+	models.MODEL_USER.ClearCache(uid)
+}
+
+type modelsWalletGateway struct{}
+
+func (modelsWalletGateway) RegisterByAddress(address string, ip string) int {
+	return models.MODEL_USER.RegisterByAddress(address, ip)
+}
 
 type TError struct {
 	Msg string
@@ -93,7 +121,7 @@ func (m *ModuleBase) GetP(r *gin.Context) { //获取参数
 }
 
 func (m *ModuleBase) NeedLogin(r *gin.Context) {
-	uid := models.MODEL_USER.CheckSessionId(r.GetString("sid"))
+	uid := httpUserAuthSvc.CheckSessionID(r.GetString("sid"))
 	if uid <= 0 || uid != r.GetInt("uid") {
 		m.SendResponse(r, HTTP_CODE_NOLOGIN, nil)
 		r.Abort()

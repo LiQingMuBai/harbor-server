@@ -2,11 +2,66 @@ package handler
 
 import (
 	"cointrade/http/common"
+	userauthrepo "cointrade/internal/userauth/repo"
+	userauthservice "cointrade/internal/userauth/service"
+	userdomain "cointrade/internal/domain/user"
+	useridentityrepo "cointrade/internal/useridentity/repo"
+	useridentityservice "cointrade/internal/useridentity/service"
+	"cointrade/lib/db"
+	"cointrade/lib/notify"
 	"cointrade/models"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
+
+var apiUserSecurityAuthSvc = userauthservice.NewService(
+	userauthrepo.NewDBRepository(),
+	apiUserSecurityUserGateway{},
+	apiUserSecurityWalletGateway{},
+)
+
+type apiUserSecurityUserGateway struct{}
+
+func (apiUserSecurityUserGateway) GetBaseInfo(uid int) *userdomain.UserBaseInfo {
+	return models.MODEL_USER.GetBaseInfo(uid)
+}
+
+func (apiUserSecurityUserGateway) Update(uid int, data db.DB_PARAMS) {
+	models.MODEL_USER.Update(uid, data)
+}
+
+func (apiUserSecurityUserGateway) ClearCache(uid int) {
+	models.MODEL_USER.ClearCache(uid)
+}
+
+type apiUserSecurityWalletGateway struct{}
+
+func (apiUserSecurityWalletGateway) RegisterByAddress(address string, ip string) int {
+	return models.MODEL_USER.RegisterByAddress(address, ip)
+}
+
+var apiUserSecurityIdentitySvc = useridentityservice.NewService(
+	useridentityrepo.NewDBRepository(),
+	apiUserSecurityIdentityUserGateway{},
+	apiUserSecurityIdentityNotifier{},
+)
+
+type apiUserSecurityIdentityUserGateway struct{}
+
+func (apiUserSecurityIdentityUserGateway) GetBaseInfo(uid int) *userdomain.UserBaseInfo {
+	return models.MODEL_USER.GetBaseInfo(uid)
+}
+
+func (apiUserSecurityIdentityUserGateway) Update(uid int, data db.DB_PARAMS) {
+	models.MODEL_USER.Update(uid, data)
+}
+
+type apiUserSecurityIdentityNotifier struct{}
+
+func (apiUserSecurityIdentityNotifier) IncrementNotify(typ int, num int) {
+	notify.NOTIFY.AddNotify(&notify.NotifyItem{Type: typ, Num: num})
+}
 
 func (m *UserModule) securityRoutes() common.MODULEHANDLELIST {
 	return common.MODULEHANDLELIST{
@@ -44,7 +99,7 @@ func (m *UserModule) UpdateCashPassword(r *gin.Context) {
 
 func (m *UserModule) AuthInfo(r *gin.Context) {
 	uid := r.GetInt("uid")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.GetAuthInfo(uid))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, apiUserSecurityIdentitySvc.GetAuthInfo(uid))
 }
 
 func (m *UserModule) ChangePass(r *gin.Context) {
@@ -55,25 +110,25 @@ func (m *UserModule) ChangePass(r *gin.Context) {
 		m.SendResponse(r, common.HTTP_CODE_ERRORPARAM, nil)
 		return
 	}
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.ChangePassword(uid, &rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, apiUserSecurityAuthSvc.ChangePassword(uid, (*userdomain.ChangePasswordRequest)(&rq)))
 }
 
 func (m *UserModule) GoogleSecret(r *gin.Context) {
 	uid := r.GetInt("uid")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.GoogleAuth(uid))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, apiUserSecurityAuthSvc.GoogleAuth(uid))
 }
 
 func (m *UserModule) BindGoogleAuth(r *gin.Context) {
 	uid := r.GetInt("uid")
 	secret := m.GetValue(r, "secret")
 	code := m.GetValue(r, "code")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.BindGoogleAuth(uid, secret, code))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, apiUserSecurityAuthSvc.BindGoogleAuth(uid, secret, code))
 }
 
 func (m *UserModule) LoginWithGoogle(r *gin.Context) {
 	uid := m.GetInt(r, "uid")
 	code := m.GetValue(r, "code")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, models.MODEL_USER.GoogleAuthLogin(uid, code, r.ClientIP()))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, apiUserSecurityAuthSvc.GoogleAuthLogin(uid, code, r.ClientIP()))
 }
 
 func (m *UserModule) SetCashPassword(r *gin.Context) {

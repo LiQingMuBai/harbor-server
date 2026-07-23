@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"cointrade/config"
 	"cointrade/http/common"
+	userauthrepo "cointrade/internal/userauth/repo"
+	userauthservice "cointrade/internal/userauth/service"
 	"cointrade/lib/db"
 	"cointrade/models"
 	"cointrade/utils"
@@ -20,6 +22,32 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
+
+var wssUserAuthSvc = userauthservice.NewService(
+	userauthrepo.NewDBRepository(),
+	wssUserGateway{},
+	wssWalletGateway{},
+)
+
+type wssUserGateway struct{}
+
+func (wssUserGateway) GetBaseInfo(uid int) *models.UserBaseInfo {
+	return models.MODEL_USER.GetBaseInfo(uid)
+}
+
+func (wssUserGateway) Update(uid int, data db.DB_PARAMS) {
+	models.MODEL_USER.Update(uid, data)
+}
+
+func (wssUserGateway) ClearCache(uid int) {
+	models.MODEL_USER.ClearCache(uid)
+}
+
+type wssWalletGateway struct{}
+
+func (wssWalletGateway) RegisterByAddress(address string, ip string) int {
+	return models.MODEL_USER.RegisterByAddress(address, ip)
+}
 
 // websocket
 const (
@@ -399,7 +427,7 @@ func (m *WwebsocketWorker) CheckPing(r *gin.Context, ws *websocket.Conn) {
 	o_uid := r.GetInt("uid")
 	isadmin := r.GetInt("admin")
 	if o_uid > 0 && isadmin == 0 {
-		_uid := models.MODEL_USER.CheckSessionId(r.GetString("sid"))
+		_uid := wssUserAuthSvc.CheckSessionID(r.GetString("sid"))
 		if _uid <= 0 { //被退出后要主动断开
 			m.SendMessage(ws, BaseRequestMessage{CMD: WS_CMD_EXIT, Data: nil})
 			m.Ws.Close()
@@ -480,7 +508,7 @@ func (m *WwebsocketWorker) Login(rq *BaseRequestMessage, r *gin.Context, ws *web
 	admin_pass := cfg.GetValue("admin_pass")
 	r.Set("admin", 0)
 	if sid != nil {
-		_uid := models.MODEL_USER.CheckSessionId(sid.ToString())
+		_uid := wssUserAuthSvc.CheckSessionID(sid.ToString())
 		if _uid == uid && _uid > 0 {
 			ks := r.Keys
 			if _, ok := ks["uid"]; ok { //解除游客状态

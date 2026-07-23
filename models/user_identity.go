@@ -3,105 +3,20 @@ package models
 import (
 	"cointrade/config"
 	shareddomain "cointrade/internal/domain/shared"
+	userdomain "cointrade/internal/domain/user"
 	"cointrade/lib/db"
-	"cointrade/lib/notify"
-	"cointrade/utils"
 )
 
 func (m *UserModel) AuthLv1(uid int, authinfo *AuthLv1Request) *BaseResponse {
-	rs := new(BaseResponse)
-	uinfo := m.GetBaseInfo(uid)
-	if uinfo.AuthLv >= 1 {
-		rs.State = STATE_FAILD
-		rs.Msg = shareddomain.MsgFailed
-		return rs
-	}
-	if authinfo.CardBack == "" || authinfo.CardFront == "" || authinfo.Phone == "" || authinfo.CardType == 0 {
-		rs.State = STATE_FAILD
-		rs.Msg = shareddomain.MsgInvalidParams
-		return rs
-	}
-
-	insertData := db.DB_PARAMS{
-		"uid":           uid,
-		"realname":      authinfo.Name,
-		"inid":          authinfo.IdCard,
-		"card_front":    authinfo.CardFront,
-		"card_back":     authinfo.CardBack,
-		"card_hand":     authinfo.HandCard,
-		"process_state": 0,
-		"createtime":    utils.GetNow(),
-		"phone":         authinfo.Phone,
-		"card_type":     authinfo.CardType,
-	}
-
-	one, _ := config.GlobalDB.FetchOne(DB_TABLE_USERAUTH, db.DB_PARAMS{"uid": uid}, db.DB_FIELDS{})
-	if one != nil {
-		if one["process_state"].ToInt() == 2 {
-			config.GlobalDB.UpdateData(DB_TABLE_USERAUTH, insertData, db.DB_PARAMS{"uid": uid})
-		} else {
-			rs.State = STATE_FAILD
-			rs.Msg = shareddomain.MsgFailed
-			return rs
-		}
-	} else {
-		config.GlobalDB.InsertData(DB_TABLE_USERAUTH, insertData)
-	}
-	notify.NOTIFY.AddNotify(&notify.NotifyItem{Type: 3, Num: 1})
-	rs.State = STATE_SUCCESS
-	rs.Msg = shareddomain.MsgSuccess
-	return rs
+	return userIdentitySvc.AuthLv1(uid, (*userdomain.AuthLv1Request)(authinfo))
 }
 
 func (m *UserModel) AuthLv2(uid int, rq *AuthLv2Request) *BaseResponse {
-	rs := new(BaseResponse)
-	uinfo := m.GetBaseInfo(uid)
-	if uinfo.AuthLv >= 2 || uinfo.AuthLv == 0 {
-		rs.State = STATE_FAILD
-		rs.Msg = shareddomain.MsgFailed
-		return rs
-	}
-	if rq.FarmilyName == "" || rq.WalletAddress == "" || rq.Address == "" {
-		rs.State = STATE_FAILD
-		rs.Msg = shareddomain.MsgInvalidParams
-		return rs
-	}
-	data := db.DB_PARAMS{
-		"uid":               uid,
-		"farmily_name":      rq.FarmilyName,
-		"relation":          rq.Relation,
-		"address":           rq.Address,
-		"contact":           rq.Contact,
-		"wallet_address":    rq.WalletAddress,
-		"chaintype":         rq.ChainType,
-		"second_card_front": rq.Second_card_front,
-		"second_card_back":  rq.Second_card_Hand,
-		"second_card_hand":  rq.Second_card_Hand,
-		"createtime":        utils.GetNow(),
-		"state":             0,
-	}
-	one, _ := config.GlobalDB.FetchOne(DB_TABLE_USERAUTH_LV2, db.DB_PARAMS{"uid": uid}, db.DB_FIELDS{})
-	if one != nil {
-		if one["state"].ToInt() == 2 {
-			config.GlobalDB.UpdateData(DB_TABLE_USERAUTH_LV2, data, db.DB_PARAMS{"id": one["id"].Value})
-		} else {
-			rs.State = STATE_FAILD
-			rs.Msg = shareddomain.MsgFailed
-			return rs
-		}
-	} else {
-		config.GlobalDB.InsertData(DB_TABLE_USERAUTH_LV2, data)
-	}
-	notify.NOTIFY.AddNotify(&notify.NotifyItem{Type: 4, Num: 1})
-	rs.State = STATE_SUCCESS
-	rs.Msg = shareddomain.MsgSuccess
-	return rs
+	return userIdentitySvc.AuthLv2(uid, (*userdomain.AuthLv2Request)(rq))
 }
 
 func (m *UserModel) GetAuthInfo(uid int) map[int]interface{} {
-	lv1Info, _ := config.GlobalDB.FetchRow(DB_TABLE_USERAUTH, db.DB_PARAMS{"uid": uid}, db.DB_FIELDS{})
-	lv2Info, _ := config.GlobalDB.FetchRow(DB_TABLE_USERAUTH_LV2, db.DB_PARAMS{"uid": uid}, db.DB_FIELDS{})
-	return map[int]interface{}{1: lv1Info, 2: lv2Info}
+	return userIdentitySvc.GetAuthInfo(uid)
 }
 
 func (m *UserModel) ChangeCashPassword(uid int, rq *SetCashPasswordRequest) *BaseResponse {

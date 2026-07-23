@@ -2,24 +2,43 @@ package service
 
 import (
 	"cointrade/config"
+	userdomain "cointrade/internal/domain/user"
+	useridentityrepo "cointrade/internal/useridentity/repo"
+	useridentityservice "cointrade/internal/useridentity/service"
 	"cointrade/lib/db"
+	"cointrade/lib/notify"
 	"cointrade/models"
 	"cointrade/utils"
 	"fmt"
 	"strings"
 )
 
+var adminUserIdentitySvc = useridentityservice.NewService(
+	useridentityrepo.NewDBRepository(),
+	adminUserIdentityUserGateway{},
+	adminUserIdentityNotifier{},
+)
+
+type adminUserIdentityUserGateway struct{}
+
+func (adminUserIdentityUserGateway) GetBaseInfo(uid int) *userdomain.UserBaseInfo {
+	return models.MODEL_USER.GetBaseInfo(uid)
+}
+
+func (adminUserIdentityUserGateway) Update(uid int, data db.DB_PARAMS) {
+	models.MODEL_USER.Update(uid, data)
+}
+
+type adminUserIdentityNotifier struct{}
+
+func (adminUserIdentityNotifier) IncrementNotify(typ int, num int) {
+	notify.NOTIFY.AddNotify(&notify.NotifyItem{Type: typ, Num: num})
+}
+
 func (m *UserModel) SaveAuth(rq P) *AdminResponse {
 	t := rq.Ts()
 	if t.Get("uid").ToInt() == 0 {
 		return &AdminResponse{State: ERROR, Data: "请填写一个用户id"}
-	}
-	uinfo := models.MODEL_USER.GetBaseInfo(t.Get("uid").ToInt())
-	if uinfo == nil {
-		return &AdminResponse{State: ERROR, Data: "该用户不存在 "}
-	}
-	if exists := config.GlobalDB.GetCount(models.DB_TABLE_USERAUTH, db.DB_PARAMS{"uid": t.Get("uid").ToInt()}); exists > 0 {
-		return &AdminResponse{State: ERROR, Data: "当前用户的认证信息已经存在"}
 	}
 	if len(t.Get("realname").ToString()) < 4 || len(t.Get("realname").ToString()) > 40 {
 		return &AdminResponse{State: ERROR, Data: "真实姓名过长"}
@@ -27,19 +46,23 @@ func (m *UserModel) SaveAuth(rq P) *AdminResponse {
 	if t.Get("card_front").ToString() == "" || t.Get("card_back").ToString() == "" || t.Get("card_hand").ToString() == "" {
 		return &AdminResponse{State: ERROR, Data: "证件照不全"}
 	}
-
-	insertData := db.DB_PARAMS{
-		"uid":           t.Get("uid").ToInt(),
-		"realname":      t.Get("realname").ToString(),
-		"inid":          t.Get("inid").ToString(),
-		"card_front":    t.Get("card_front").ToString(),
-		"card_back":     t.Get("card_back").ToString(),
-		"card_hand":     t.Get("card_hand").ToString(),
-		"process_state": 1,
-		"createtime":    utils.GetNow(),
-		"passtime":      utils.GetNow(),
+	if err := adminUserIdentitySvc.AdminSaveLv1(
+		t.Get("uid").ToInt(),
+		t.Get("realname").ToString(),
+		t.Get("inid").ToString(),
+		t.Get("card_front").ToString(),
+		t.Get("card_back").ToString(),
+		t.Get("card_hand").ToString(),
+	); err != nil {
+		switch err {
+		case useridentityservice.ErrUserNotFound:
+			return &AdminResponse{State: ERROR, Data: "该用户不存在 "}
+		case useridentityservice.ErrAuthAlreadyExists:
+			return &AdminResponse{State: ERROR, Data: "当前用户的认证信息已经存在"}
+		default:
+			return &AdminResponse{State: ERROR, Data: "添加用户认证失败"}
+		}
 	}
-	config.GlobalDB.InsertData(models.DB_TABLE_USERAUTH, insertData)
 	return &AdminResponse{State: SUCCESS, Data: "添加用户认证成功"}
 }
 
@@ -47,19 +70,15 @@ func (m *UserModel) DeleteUserAuth(id int, tp int) *AdminResponse {
 	if id == 0 {
 		return &AdminResponse{State: ERROR, Data: "请确认一个要删除的认证信息!"}
 	}
-	table := map[int]string{
-		1: models.DB_TABLE_USERAUTH,
-		2: models.DB_TABLE_USERAUTH_LV2,
+	if err := adminUserIdentitySvc.AdminDeleteAuth(id, tp); err != nil {
+		switch err {
+		case useridentityservice.ErrAuthNotFound:
+			return &AdminResponse{State: ERROR, Data: "当前认证信息不存在!"}
+		default:
+			return &AdminResponse{State: SUCCESS, Data: "删除认证信息失败!"}
+		}
 	}
-	one, _ := config.GlobalDB.FetchOne(table[tp], db.DB_PARAMS{"id": id}, db.DB_FIELDS{})
-	if one == nil {
-		return &AdminResponse{State: ERROR, Data: "当前认证信息不存在!"}
-	}
-	if _, err := config.GlobalDB.Delete(table[tp], db.DB_PARAMS{"id": id}); err == nil {
-		models.MODEL_USER.Update(one.Get("uid").ToInt(), db.DB_PARAMS{"auth_lv": tp - 1})
-		return &AdminResponse{State: SUCCESS, Data: "删除认证信息成功!"}
-	}
-	return &AdminResponse{State: SUCCESS, Data: "删除认证信息失败!"}
+	return &AdminResponse{State: SUCCESS, Data: "删除认证信息成功!"}
 }
 
 func (m *UserModel) ReviewUserAuth(rq P, tp int) *AdminResponse {
@@ -68,29 +87,13 @@ func (m *UserModel) ReviewUserAuth(rq P, tp int) *AdminResponse {
 	if id == 0 {
 		return &AdminResponse{State: ERROR, Data: "审核的id不存在!"}
 	}
-	table := map[int]string{
-		1: models.DB_TABLE_USERAUTH,
-		2: models.DB_TABLE_USERAUTH_LV2,
-	}
-	one, _ := config.GlobalDB.FetchOne(table[tp], db.DB_PARAMS{"id": id}, db.DB_FIELDS{})
-	if one == nil {
-		return &AdminResponse{State: ERROR, Data: "当前审核信息不存在!"}
-	}
-
-	up := db.DB_PARAMS{"process_state": t.Get("process_state").ToInt(), "reason": t.Get("reason").ToString()}
-	if tp == 2 {
-		up = db.DB_PARAMS{"state": t.Get("process_state").ToInt(), "reason": t.Get("reason").ToString()}
-	}
-	up["passtime"] = utils.GetNow()
-	if _, err := config.GlobalDB.UpdateData(table[tp], up, db.DB_PARAMS{"id": id}); err != nil {
-		return &AdminResponse{State: ERROR, Data: "审核当前信息失败！"}
-	}
-	if t.Get("process_state").ToInt() == 1 {
-		usup := db.DB_PARAMS{"auth_lv": tp, "credit_coin": 80}
-		if tp == 2 {
-			usup["credit_coin"] = 100
+	if err := adminUserIdentitySvc.AdminReviewAuth(id, tp, t.Get("process_state").ToInt(), t.Get("reason").ToString()); err != nil {
+		switch err {
+		case useridentityservice.ErrAuthNotFound:
+			return &AdminResponse{State: ERROR, Data: "当前审核信息不存在!"}
+		default:
+			return &AdminResponse{State: ERROR, Data: "审核当前信息失败！"}
 		}
-		models.MODEL_USER.Update(one.Get("uid").ToInt(), usup)
 	}
 	return &AdminResponse{State: SUCCESS, Data: "审核当前信息成功!"}
 }
