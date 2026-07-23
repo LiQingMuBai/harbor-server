@@ -11,10 +11,7 @@ func main() {
 		log.Fatal(err)
 	}
 	options := bootstrapapi.OptionsFromEnv()
-	log.Printf("==================================================")
-	log.Printf("START harbor-server api")
-	log.Printf("service=api port=%d rpc_port=%d local_ip=%s", options.ServerPort, options.RPCPort, options.LocalIP)
-	log.Printf("==================================================")
+	utils.ServiceStartupBanner("harbor-server api", "service", "api", "port", options.ServerPort, "rpc_port", options.RPCPort, "local_ip", options.LocalIP)
 	if err := bootstrapapi.Run(options); err != nil {
 		log.Fatal(err)
 	}

@@ -1,10 +1,12 @@
 package utils
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -130,8 +132,142 @@ func SetupServiceLogger(name string) error {
 		go rotateServiceInfoLogLoop()
 	})
 
+	ServiceStartupEvent(
+		"service_dir", logDirName,
+		"service_tag", logFileTag,
+		"pid", os.Getpid(),
+		"go_version", runtime.Version(),
+		"info_log", ServiceLogPath(dailyInfoLogFilenameAt(logFileTag, now)),
+		"access_log", ServiceLogPath(dailyAccessLogFilenameAt(logFileTag, now)),
+		"panic_log", ServiceLogPath(dailyPanicLogFilenameAt(logFileTag, now)),
+	)
+
 	log.SetFlags(0)
 	return nil
+}
+
+func ServiceStartupEvent(keysAndValues ...interface{}) {
+	ServiceLogger().Sugar().Infow("startup", keysAndValues...)
+}
+
+func ServiceStartupBanner(title string, keysAndValues ...interface{}) {
+	eventFields := make([]interface{}, 0, len(keysAndValues)+2)
+	eventFields = append(eventFields, "title", title)
+	eventFields = append(eventFields, keysAndValues...)
+	ServiceStartupEvent(eventFields...)
+
+	sugar := ServiceLogger().Sugar()
+	boxWidth := 86
+	innerWidth := boxWidth - 4
+
+	top := "+" + strings.Repeat("-", boxWidth-2) + "+"
+	bottom := top
+	titleLine := "| " + padRight("START "+title, innerWidth) + " |"
+
+	kv := formatKeyValues(keysAndValues...)
+	kvLines := wrapText(kv, innerWidth, 2)
+	for len(kvLines) < 2 {
+		kvLines = append(kvLines, "")
+	}
+	contentLine1 := "| " + padRight(kvLines[0], innerWidth) + " |"
+	contentLine2 := "| " + padRight(kvLines[1], innerWidth) + " |"
+
+	sugar.Info(top)
+	sugar.Info(titleLine)
+	sugar.Info(contentLine1)
+	sugar.Info(contentLine2)
+	sugar.Info(bottom)
+}
+
+func formatKeyValues(keysAndValues ...interface{}) string {
+	if len(keysAndValues) == 0 {
+		return ""
+	}
+	var b strings.Builder
+	for i := 0; i < len(keysAndValues); i += 2 {
+		if i > 0 {
+			b.WriteByte(' ')
+		}
+		if i+1 >= len(keysAndValues) {
+			b.WriteString(fmt.Sprint(keysAndValues[i]))
+			break
+		}
+		b.WriteString(fmt.Sprint(keysAndValues[i]))
+		b.WriteByte('=')
+		b.WriteString(fmt.Sprint(keysAndValues[i+1]))
+	}
+	return b.String()
+}
+
+func padRight(s string, width int) string {
+	if len(s) >= width {
+		return s[:width]
+	}
+	return s + strings.Repeat(" ", width-len(s))
+}
+
+func wrapText(s string, width int, maxLines int) []string {
+	s = strings.TrimSpace(s)
+	if s == "" || width <= 0 || maxLines <= 0 {
+		return []string{""}
+	}
+
+	words := strings.Fields(s)
+	if len(words) == 0 {
+		return []string{""}
+	}
+
+	lines := make([]string, 0, maxLines)
+	var current strings.Builder
+
+	flush := func() {
+		if current.Len() == 0 {
+			return
+		}
+		lines = append(lines, current.String())
+		current.Reset()
+	}
+
+	for _, w := range words {
+		if len(lines) >= maxLines {
+			break
+		}
+		if len(w) > width {
+			w = w[:width]
+		}
+
+		if current.Len() == 0 {
+			current.WriteString(w)
+			continue
+		}
+		if current.Len()+1+len(w) <= width {
+			current.WriteByte(' ')
+			current.WriteString(w)
+			continue
+		}
+
+		flush()
+		if len(lines) >= maxLines {
+			break
+		}
+		current.WriteString(w)
+	}
+	flush()
+
+	if len(lines) > maxLines {
+		lines = lines[:maxLines]
+	}
+	if len(lines) == maxLines && len(words) > 0 {
+		last := lines[maxLines-1]
+		if len(last) >= 3 && last[len(last)-3:] != "..." && len(words) > 0 {
+			if len(last) > width-3 {
+				last = last[:width-3]
+			}
+			lines[maxLines-1] = strings.TrimRight(last, " ") + "..."
+		}
+	}
+
+	return lines
 }
 
 func rotateServiceInfoLogLoop() {

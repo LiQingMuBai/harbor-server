@@ -2,6 +2,7 @@ package handler
 
 import (
 	"cointrade/http/common"
+	shareddomain "cointrade/internal/domain/shared"
 	"cointrade/models"
 
 	"github.com/gin-gonic/gin"
@@ -45,7 +46,7 @@ func (m *UserModule) Update(r *gin.Context) {
 		return
 	}
 	models.MODEL_USER.Update(uid, data.(map[string]interface{}))
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, "ok")
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, shareddomain.MsgOK)
 }
 
 func (m *UserModule) GetUserInfo(r *gin.Context) {

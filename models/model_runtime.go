@@ -89,7 +89,7 @@ func LoadInitData() {
 	EXPLODE_CONFIG = MODEL_SYSTEM.GetExplodeConfig()
 	MINPRODUCT_LIST = MODEL_PRODUCT.GetProductList()
 	CURRENCY_LIST = MODEL_SYSTEM.LoadCurrency()
-	RECHARGE_INCOME_RATES = GetRechageIncomeMap()
+	RECHARGE_INCOME_RATES = GetRechargeIncomeMap()
 	MINING_INCOME_RATES = GetMiningIncomeMap()
 	LOAN_PRODUCT_LIST = MODEL_SYSTEM.GetLoanProductList()
 	BUY_COIN_LIST = MODEL_SYSTEM.GetBuyCoinList()
@@ -97,7 +97,7 @@ func LoadInitData() {
 	GLOBAL_REGISTER_LOCKER.AddressState = make(map[string]bool)
 }
 
-func GetRechageIncomeMap() map[int]float64 {
+func GetRechargeIncomeMap() map[int]float64 {
 	rs := make(map[int]float64)
 	tmpArr := strings.Split(config.GlobalConfig.GetValue("recharge_income_rates").ToString(), ",")
 	n := 1
@@ -106,6 +106,10 @@ func GetRechageIncomeMap() map[int]float64 {
 		n++
 	}
 	return rs
+}
+
+func GetRechageIncomeMap() map[int]float64 {
+	return GetRechargeIncomeMap()
 }
 
 func GetMiningIncomeMap() map[int][]float64 {

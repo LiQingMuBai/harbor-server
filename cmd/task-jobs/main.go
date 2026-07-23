@@ -10,12 +10,8 @@ func main() {
 	if err := utils.SetupServiceLogger("task/jobs"); err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("==================================================")
-	log.Printf("START harbor-server task")
-	log.Printf("service=task mode=task")
-	log.Printf("==================================================")
+	utils.ServiceStartupBanner("harbor-server task-jobs", "service", "task", "mode", "task")
 	if err := bootstraptask.RunJobs(); err != nil {
 		log.Fatal(err)
 	}
 }
-

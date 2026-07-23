@@ -2,6 +2,7 @@ package models
 
 import (
 	"cointrade/config"
+	shareddomain "cointrade/internal/domain/shared"
 	"cointrade/lib/db"
 	"cointrade/utils"
 	"fmt"
@@ -23,7 +24,7 @@ func (m *UserModel) UpdatePorfile(uid int, rq *UpdateProfileRequest) *BaseRespon
 	if len(data) > 0 {
 		m.Update(uid, data)
 	}
-	return &BaseResponse{State: STATE_SUCCESS, Msg: "success"}
+	return &BaseResponse{State: STATE_SUCCESS, Msg: shareddomain.MsgSuccess}
 }
 
 func (m *UserModel) GetUserCount(uid int, t int) *UserCount {
@@ -169,7 +170,7 @@ func (m *UserModel) Claim(uid int) *BaseResponse {
 		}
 	}
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }
 
@@ -180,7 +181,7 @@ func (m *UserModel) ClearIncome(uid int, cashpassword string) *BaseResponse {
 	oday := time.Unix(int64(uinfo.ClearIncomeTime), 0).Day()
 	if uinfo.CashPassword == "" || uinfo.CashPassword != m.EncodePassword(cashpassword) || oday == nday {
 		rs.State = STATE_FAILD
-		rs.Msg = "faild"
+		rs.Msg = shareddomain.MsgFailed
 		return rs
 	}
 	if uinfo.MiningIncome+uinfo.RechargeIncome > 0 {
@@ -202,7 +203,7 @@ func (m *UserModel) ClearIncome(uid int, cashpassword string) *BaseResponse {
 		}
 	}
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }
 
@@ -211,12 +212,12 @@ func (m *UserModel) Welcome2() *WelcomeResponse {
 	one, _ := config.GlobalDB.FetchOne(DB_TABLE_WELCOME, nil, db.DB_FIELDS{"id", "platform_name", "welcome_page"})
 	if one == nil {
 		rs.State = 1
-		rs.Msg = "failed"
+		rs.Msg = shareddomain.MsgFailed
 		rs.WelcomeInfo = nil
 		return rs
 	}
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	rs.WelcomeInfo = &WelcomeInfo{
 		PlatformName: one["platform_name"].ToString(),
 		WelcomePage:  one["welcome_page"].ToString(),
@@ -227,7 +228,7 @@ func (m *UserModel) Welcome2() *WelcomeResponse {
 func (m *UserModel) CrossTrade(uid int, data db.DB_PARAMS) *CrossPlatformTradeResponse {
 	rs := new(CrossPlatformTradeResponse)
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 
 	var userBalance float64
 	userAsset4USDT, _ := config.GlobalDB.FetchOne(DB_TABLE_USER, db.DB_PARAMS{"id": uid}, db.DB_FIELDS{})
@@ -253,7 +254,7 @@ func (m *UserModel) CrossTrade(uid int, data db.DB_PARAMS) *CrossPlatformTradeRe
 func (m *UserModel) Welcome() *WelcomeResponse {
 	rs := new(WelcomeResponse)
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	welcomeInfo := &WelcomeInfo{
 		DirectWithdraw: "0",
 		LinkWallet:     "0",
@@ -286,15 +287,15 @@ func (m *UserModel) ChangeMode(uid int) *BaseResponse {
 			m.Update(uid, db.DB_PARAMS{"mode": 1})
 		}
 	}
-	return &BaseResponse{State: STATE_SUCCESS, Msg: ""}
+	return &BaseResponse{State: STATE_SUCCESS, Msg: shareddomain.MsgOK}
 }
 
 func (m *UserModel) GetExplodeState(uid int) *BaseResponse {
 	one, _ := config.GlobalDB.FetchOne(DB_TABLE_USER, db.DB_PARAMS{"id": uid}, db.DB_FIELDS{"explode_state"})
 	if one == nil {
-		return &BaseResponse{State: 0, Msg: ""}
+		return &BaseResponse{State: 0, Msg: shareddomain.MsgOK}
 	}
-	return &BaseResponse{State: one["explode_state"].ToInt(), Msg: ""}
+	return &BaseResponse{State: one["explode_state"].ToInt(), Msg: shareddomain.MsgOK}
 }
 
 func (m *UserModel) ConvertMoney(uid int) db.DB_PARAMS {

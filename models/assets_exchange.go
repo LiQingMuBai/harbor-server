@@ -1,6 +1,7 @@
 package models
 
 import (
+	shareddomain "cointrade/internal/domain/shared"
 	"cointrade/lib/db"
 	"cointrade/utils"
 	"fmt"
@@ -21,20 +22,20 @@ func (m *AssetModel) QuickExchange(uid int, rq *QuickExchangeRequest) *BaseRespo
 	rq.Coin = strings.ToLower(rq.Coin)
 	coininfo := MODEL_SYSTEM.GetCoinInfo(rq.Coin, rq.Coin+"usdt")
 	if coininfo != nil && coininfo["is_market"] == "0" && rq.Coin != "usdt" && rq.Coin != "usdc" {
-		return &BaseResponse{State: STATE_FAILD, Msg: "faild"}
+		return &BaseResponse{State: STATE_FAILD, Msg: shareddomain.MsgFailed}
 	}
 	if rq.Coin == "usdt" {
-		return &BaseResponse{State: STATE_FAILD, Msg: "faild"}
+		return &BaseResponse{State: STATE_FAILD, Msg: shareddomain.MsgFailed}
 	}
 	for _, v := range assetsInfo {
 		if v.Symbol != rq.Coin {
 			continue
 		}
 		if v.IsTrans == 0 {
-			return &BaseResponse{State: EXCHANGE_STATE_NOT_TRANS, Msg: "not allowed trans"}
+			return &BaseResponse{State: EXCHANGE_STATE_NOT_TRANS, Msg: shareddomain.MsgTransNotAllowed}
 		}
 		if v.Count < rq.Amount {
-			return &BaseResponse{State: EXCHANGE_STATE_NOTENNOUGH, Msg: "not enough assets"}
+			return &BaseResponse{State: EXCHANGE_STATE_NOTENNOUGH, Msg: shareddomain.MsgInsufficient}
 		}
 		pair := rq.Coin + "usdt"
 		credit := 0.0
@@ -47,7 +48,7 @@ func (m *AssetModel) QuickExchange(uid int, rq *QuickExchangeRequest) *BaseRespo
 			price = coininfo["close"].(float64)
 		}
 		if v.TransOpenTime > 0 && v.TransOpenTime > ntime {
-			return &BaseResponse{State: EXCHANGE_STATE_NOT_TRANS, Msg: "not allowed trans"}
+			return &BaseResponse{State: EXCHANGE_STATE_NOT_TRANS, Msg: shareddomain.MsgTransNotAllowed}
 		}
 		if m.AddAssets(uid, &Assets{
 			Coin:    rq.Coin,
@@ -68,9 +69,9 @@ func (m *AssetModel) QuickExchange(uid int, rq *QuickExchangeRequest) *BaseRespo
 				},
 			})
 		}
-		return &BaseResponse{State: STATE_SUCCESS, Msg: "ok"}
+		return &BaseResponse{State: STATE_SUCCESS, Msg: shareddomain.MsgOK}
 	}
-	return &BaseResponse{State: STATE_FAILD, Msg: "faild"}
+	return &BaseResponse{State: STATE_FAILD, Msg: shareddomain.MsgFailed}
 }
 
 func (m *AssetModel) Exchange(uid int, from string, to string, toAmount float64) *BaseResponse {
@@ -79,12 +80,12 @@ func (m *AssetModel) Exchange(uid int, from string, to string, toAmount float64)
 	uinfo := MODEL_USER.GetBaseInfo(uid)
 	if uinfo == nil {
 		rs.State = STATE_FAILD
-		rs.Msg = "no this user"
+		rs.Msg = shareddomain.MsgUserNotFound
 		return rs
 	}
 	if from == to {
 		rs.State = STATE_FAILD
-		rs.Msg = "same"
+		rs.Msg = shareddomain.MsgSameAsset
 		return rs
 	}
 	from = strings.ToLower(from)
@@ -100,14 +101,14 @@ func (m *AssetModel) Exchange(uid int, from string, to string, toAmount float64)
 	}
 	if fromCoinInfo == nil || toCoinInfo == nil {
 		rs.State = STATE_SYSTEM_ERROR
-		rs.Msg = "system error"
+		rs.Msg = shareddomain.MsgInternalError
 		return rs
 	}
 
 	toAmount = utils.FormatFloatA(toAmount, utils.GetInt(toCoinInfo["cnum"]))
 	if toAmount <= 0 {
 		rs.State = EXCHANGE_STATE_TOOMIN
-		rs.Msg = "too smalll"
+		rs.Msg = shareddomain.MsgAmountTooSmall
 		return rs
 	}
 
@@ -126,7 +127,7 @@ func (m *AssetModel) Exchange(uid int, from string, to string, toAmount float64)
 	fromAmount, ok := userAssets[from]
 	if !ok && from != "usdt" {
 		rs.State = EXCHANGE_STATE_NOTENNOUGH
-		rs.Msg = "assets not engough"
+		rs.Msg = shareddomain.MsgInsufficient
 		return rs
 	}
 
@@ -137,7 +138,7 @@ func (m *AssetModel) Exchange(uid int, from string, to string, toAmount float64)
 	} else {
 		if fromAmount.IsTrans == 0 {
 			rs.State = STATE_SYSTEM_ERROR
-			rs.Msg = "from not allowed trans"
+			rs.Msg = shareddomain.MsgTransNotAllowed
 			return rs
 		}
 		fromAllPrice = fromPrice * fromAmount.Count
@@ -145,13 +146,13 @@ func (m *AssetModel) Exchange(uid int, from string, to string, toAmount float64)
 
 	if toAllPrice > fromAllPrice {
 		rs.State = EXCHANGE_STATE_NOTENNOUGH
-		rs.Msg = "not enough"
+		rs.Msg = shareddomain.MsgInsufficient
 		return rs
 	}
 	fromDiffAmount := utils.FormatFloatA(toAllPrice/fromPrice, utils.GetInt(fromCoinInfo["cnum"]))
 	if fromDiffAmount <= 0 {
 		rs.State = EXCHANGE_STATE_TOOMIN
-		rs.Msg = "too smalll"
+		rs.Msg = shareddomain.MsgAmountTooSmall
 		return rs
 	}
 
@@ -258,6 +259,6 @@ func (m *AssetModel) Exchange(uid int, from string, to string, toAmount float64)
 	}
 
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success!"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }

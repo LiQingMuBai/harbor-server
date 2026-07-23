@@ -73,17 +73,17 @@ func (s *RechargeService) CreateRecharge(uid int, rq *creditdomain.RechargeReque
 	rechargeConfig := s.system.GetRechargeConfig(rq.CoinType, rq.Contract)
 	if rechargeConfig == nil {
 		rs.State = stateSystemError
-		rs.Msg = "system error"
+		rs.Msg = shareddomain.MsgInternalError
 		return rs
 	}
 	if uinfo == nil {
 		rs.State = creditdomain.RECHARGE_STATE_ERROR_USER
-		rs.Msg = "the user is not exists"
+		rs.Msg = shareddomain.MsgUserNotFound
 		return rs
 	}
 	if rq.Amount < rechargeConfig.Min {
 		rs.State = creditdomain.RECHARGE_STATE_MIN
-		rs.Msg = "too small"
+		rs.Msg = shareddomain.MsgAmountTooSmall
 		return rs
 	}
 
@@ -119,7 +119,7 @@ func (s *RechargeService) CreateRecharge(uid int, rq *creditdomain.RechargeReque
 	}
 	s.notifier.IncrementNotify(2, 1)
 	rs.State = stateSuccess
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	rs.Info = insertData
 	rs.Sn = sn
 	return rs

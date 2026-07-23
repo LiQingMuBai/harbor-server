@@ -11,10 +11,7 @@ func main() {
 		log.Fatal(err)
 	}
 	options := bootstrapwss.OptionsFromEnv()
-	log.Printf("==================================================")
-	log.Printf("START harbor-server wss")
-	log.Printf("service=wss port=%d", options.Port)
-	log.Printf("==================================================")
+	utils.ServiceStartupBanner("harbor-server wss", "service", "wss", "port", options.Port)
 	if err := bootstrapwss.Run(options); err != nil {
 		log.Fatal(err)
 	}

@@ -2,6 +2,7 @@ package models
 
 import (
 	"cointrade/config"
+	shareddomain "cointrade/internal/domain/shared"
 	"cointrade/lib/db"
 	"fmt"
 	"math"
@@ -51,7 +52,7 @@ func (m *CreditLogModel) IncomeLog(uid int, rq *PageBaseRequest) *PageBaseRespon
 	rs.State = STATE_SUCCESS
 	rs.Limit = rq.Limit
 	rs.Page = rq.Page
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	rs.PageTotal = pagesize
 	rs.Total = count
 	rs.List = list

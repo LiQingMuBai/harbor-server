@@ -68,7 +68,7 @@ type QueueCreditLog struct {
 
 type QueueTeamLog struct {
 	Recharge            float64 `json:"recharge"`
-	WithDraw            float64 `json:"withdraw"`
+	Withdraw            float64 `json:"withdraw"`
 	Trade               float64 `json:"trade"`
 	TradeProfit         float64 `json:"trade_profit"`
 	MiningCount         float64 `json:"mining_count"`

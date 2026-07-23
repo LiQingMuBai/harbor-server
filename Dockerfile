@@ -24,7 +24,7 @@ WORKDIR /app
 RUN apk add --no-cache ca-certificates netcat-openbsd tzdata \
 	&& addgroup -S app \
 	&& adduser -S -G app app \
-	&& mkdir -p /app/logs \
+	&& mkdir -p /app/logs /app/static /app/pdf /app/whitepaper \
 	&& chown -R app:app /app
 
 COPY --from=builder /out/service /app/service

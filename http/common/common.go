@@ -114,7 +114,7 @@ func (m *ModuleBase) ConvertObject(r *gin.Context, obj interface{}) error {
 	data, b := r.Get("data")
 	if b {
 		if data == nil {
-			return &TError{Msg: "no this param"}
+			return &TError{Msg: "参数错误 (invalid parameters)"}
 		}
 		dataStr, err := json.Marshal(data)
 
@@ -126,7 +126,7 @@ func (m *ModuleBase) ConvertObject(r *gin.Context, obj interface{}) error {
 			return err
 		}
 	}
-	return &TError{Msg: "no this param"}
+	return &TError{Msg: "参数错误 (invalid parameters)"}
 }
 func (m *ModuleBase) SendResponse(r *gin.Context, code int, data interface{}) {
 

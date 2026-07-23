@@ -178,7 +178,7 @@ func (s *Service) GetDelegateList(uid int, rq *tradedomain.TradeListRequest) *sh
 	page, pageTotal := normalizePage(rq.Page, rq.Limit, count)
 	list, _ := s.repo.FetchDelegateRows(condition, "order by id desc", fmt.Sprintf("limit %d,%d", (page-1)*rq.Limit, rq.Limit))
 	return &shareddomain.PageBaseResponse{
-		BaseResponse: shareddomain.BaseResponse{State: stateSuccess, Msg: ""},
+		BaseResponse: shareddomain.BaseResponse{State: stateSuccess, Msg: shareddomain.MsgOK},
 		Limit:        rq.Limit,
 		Page:         page,
 		PageTotal:    pageTotal,
@@ -237,7 +237,7 @@ func (s *Service) GetCloseList(uid int, rq *tradedomain.TradeListRequest) *share
 	page, pageTotal := normalizePage(rq.Page, rq.Limit, count)
 	list, _ := s.repo.FetchCloseRows(condition, "order by id desc", fmt.Sprintf("limit %d,%d", (page-1)*rq.Limit, rq.Limit))
 	return &shareddomain.PageBaseResponse{
-		BaseResponse: shareddomain.BaseResponse{State: stateSuccess, Msg: ""},
+		BaseResponse: shareddomain.BaseResponse{State: stateSuccess, Msg: shareddomain.MsgOK},
 		Limit:        rq.Limit,
 		Page:         page,
 		PageTotal:    pageTotal,
@@ -250,7 +250,7 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 	uinfo := s.user.GetBaseInfo(uid)
 	if uinfo == nil {
 		rs.State = stateSystemError
-		rs.Msg = "system error"
+		rs.Msg = shareddomain.MsgInternalError
 		return rs
 	}
 	ntime := utils.GetNow()
@@ -260,7 +260,7 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 	}
 	if rq.GangGan > 100 {
 		rs.State = tradedomain.DELEGATE_STATE_GANGGAN_ERROR
-		rs.Msg = "error ganggan"
+		rs.Msg = shareddomain.MsgLeverageInvalid
 		return rs
 	}
 	teamLogType := 0
@@ -270,14 +270,14 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 	}
 	if rq.OpenType != tradedomain.OPEN_TYPE_BB && rq.OpenType != tradedomain.OPEN_TYPE_EXPLODE && rq.OpenType != tradedomain.OPEN_TYPE_KEEP {
 		rs.State = stateSystemError
-		rs.Msg = "system error"
+		rs.Msg = shareddomain.MsgInternalError
 		return rs
 	}
 
 	coinInfo := s.market.GetCoinInfo(rq.Coin, rq.Pair)
 	if coinInfo == nil {
 		rs.State = tradedomain.DELEGATE_STATE_NOCOIN
-		rs.Msg = "no this coin"
+		rs.Msg = shareddomain.MsgCoinNotFound
 		return rs
 	}
 	if rq.DirectType != tradedomain.DIRECT_TYPE_BIG {
@@ -318,7 +318,7 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 		coinprice = utils.FormatFloatA(rq.Price, utils.GetInt(coinInfo["dnum"]))
 		if coinprice <= 0 {
 			rs.State = tradedomain.DELEGATE_STATE_MIN
-			rs.Msg = "trade too small 1"
+			rs.Msg = shareddomain.MsgTradeTooSmall
 			return rs
 		}
 	}
@@ -327,14 +327,14 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 	case tradedomain.OPEN_TYPE_BB:
 		if coinInfo["open_coin2coin"] == "0" {
 			rs.State = tradedomain.DELEGATE_STATE_TRADE_CLOSED
-			rs.Msg = "trade closed"
+			rs.Msg = shareddomain.MsgTradeClosed
 			return rs
 		}
 		coinChangeType = creditlogdomain.COIN_LOG_BB_TRADE
 		rq.Amount = utils.FormatFloatA(rq.Amount, utils.GetInt(coinInfo["cnum"]))
 		if rq.Amount <= 0 {
 			rs.State = tradedomain.DELEGATE_STATE_MIN
-			rs.Msg = "trade too small 2"
+			rs.Msg = shareddomain.MsgTradeTooSmall
 			return rs
 		}
 		allprice := rq.Amount * coinprice
@@ -345,7 +345,7 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 			}
 			if userCredit < allprice {
 				rs.State = tradedomain.DELEGATE_STATE_CREDIT
-				rs.Msg = "not enough credit"
+				rs.Msg = shareddomain.MsgInsufficient
 				return rs
 			}
 		} else {
@@ -353,17 +353,17 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 			assetInfo, ok := userAssets[rq.Coin]
 			if !ok {
 				rs.State = tradedomain.DELEGATE_STATE_NOASSET
-				rs.Msg = "you dont have this assets"
+				rs.Msg = shareddomain.MsgAssetNotOwned
 				return rs
 			}
 			if assetInfo.Count < rq.Amount {
 				rs.State = tradedomain.DELEGATE_STATE_CREDIT
-				rs.Msg = "not enough credit"
+				rs.Msg = shareddomain.MsgInsufficient
 				return rs
 			}
 			if coinInfo["isnative"] == "0" && assetInfo.TransOpenTime > ntime {
 				rs.State = tradedomain.DELEGATE_STATE_TRADE_CLOSED
-				rs.Msg = "locktime"
+				rs.Msg = shareddomain.MsgAssetLockedByTime
 				return rs
 			}
 			s.asset.AddAssets(uid, &assetsdomain.Assets{
@@ -382,7 +382,7 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 	case tradedomain.OPEN_TYPE_KEEP:
 		if coinInfo["open_trade"] == "0" {
 			rs.State = tradedomain.DELEGATE_STATE_TRADE_CLOSED
-			rs.Msg = "trade closed"
+			rs.Msg = shareddomain.MsgTradeClosed
 			return rs
 		}
 		allprice := rq.Amount * 1000
@@ -394,14 +394,14 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 			realprice = realPrice
 			if userCredit < realPrice {
 				rs.State = tradedomain.DELEGATE_STATE_CREDIT
-				rs.Msg = "not enough credit"
+				rs.Msg = shareddomain.MsgInsufficient
 				return rs
 			}
 			coinCount := allprice / coinprice
 			coinCount = utils.FormatFloatA(coinCount, utils.GetInt(coinInfo["cnum"]))
 			if coinCount <= 0 {
 				rs.State = tradedomain.DELEGATE_STATE_MIN
-				rs.Msg = "trade too small 3"
+				rs.Msg = shareddomain.MsgTradeTooSmall
 				return rs
 			}
 		} else {
@@ -410,12 +410,12 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 				one = s.GetOpendBySn(uid, rq.Sn)
 				if one == nil {
 					rs.State = tradedomain.DELEGATE_STATE_NOCOIN
-					rs.Msg = "no this assets"
+					rs.Msg = shareddomain.MsgAssetNotOwned
 					return rs
 				}
 				if one.Ganggan <= 1 {
 					rs.State = stateFailed
-					rs.Msg = "not a ganggan trade"
+					rs.Msg = shareddomain.MsgLeverageOrderOnly
 					return rs
 				}
 				insertData["ganggan_sn"] = rq.Sn
@@ -424,7 +424,7 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 			}
 			if one == nil || rq.Amount > one.Num {
 				rs.State = tradedomain.DELEGATE_STATE_NOCOIN
-				rs.Msg = "no this assets"
+				rs.Msg = shareddomain.MsgAssetNotOwned
 				return rs
 			}
 			_ = s.repo.AddOpenedLockValue(one.Id, -1*rq.Amount, rq.Amount, uinfo.Mode)
@@ -436,24 +436,24 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 	case tradedomain.OPEN_TYPE_EXPLODE:
 		if coinInfo["open_trade"] == "0" {
 			rs.State = tradedomain.DELEGATE_STATE_TRADE_CLOSED
-			rs.Msg = "trade closed"
+			rs.Msg = shareddomain.MsgTradeClosed
 			return rs
 		}
 		coinChangeType = creditlogdomain.COIN_LOG_EXPLODE_TRADE
 		explodeConfig, ok := s.market.GetExplodeConfig()[rq.CloseTime]
 		if !ok {
 			rs.State = tradedomain.DELEGATE_STATE_CLOSETIME
-			rs.Msg = "incorrect close time"
+			rs.Msg = shareddomain.MsgCloseTimeInvalid
 			return rs
 		}
 		if rq.Amount < explodeConfig.Minprice {
 			rs.State = tradedomain.DELEGATE_STATE_MIN
-			rs.Msg = "too small"
+			rs.Msg = shareddomain.MsgTradeTooSmall
 			return rs
 		}
 		if userCredit < rq.Amount {
 			rs.State = tradedomain.DELEGATE_STATE_CREDIT
-			rs.Msg = "not enough credit"
+			rs.Msg = shareddomain.MsgInsufficient
 			return rs
 		}
 		realprice = rq.Amount
@@ -503,7 +503,7 @@ func (s *Service) DelegateTrade(uid int, rq *tradedomain.TradeDelegateRequest) *
 	}
 	if err != nil {
 		rs.State = stateSystemError
-		rs.Msg = "system error"
+		rs.Msg = shareddomain.MsgInternalError
 		return rs
 	}
 
@@ -548,7 +548,7 @@ func (s *Service) CancleDelegate(uid int, sn string) *shareddomain.BaseResponse 
 	one, _ := s.repo.FetchPendingDelegate(uid, sn)
 	if one == nil {
 		rs.State = stateFailed
-		rs.Msg = "no this delegate order"
+		rs.Msg = shareddomain.MsgOrderNotFound
 		return rs
 	}
 
@@ -583,7 +583,7 @@ func (s *Service) CancleDelegate(uid int, sn string) *shareddomain.BaseResponse 
 			}
 		}
 		rs.State = stateSuccess
-		rs.Msg = "success"
+		rs.Msg = shareddomain.MsgSuccess
 		return rs
 	}
 
@@ -609,7 +609,7 @@ func (s *Service) CancleDelegate(uid int, sn string) *shareddomain.BaseResponse 
 		uinfo := s.user.GetBaseInfo(uid)
 		if uinfo == nil {
 			rs.State = stateSystemError
-			rs.Msg = "system error"
+			rs.Msg = shareddomain.MsgInternalError
 			return rs
 		}
 		num := one["num"].ToFloat()
@@ -625,7 +625,7 @@ func (s *Service) CancleDelegate(uid int, sn string) *shareddomain.BaseResponse 
 	}
 
 	rs.State = stateSuccess
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }
 

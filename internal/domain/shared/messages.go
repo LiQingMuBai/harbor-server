@@ -1,0 +1,57 @@
+package shared
+
+const (
+	MsgOK             = "成功 (ok)"
+	MsgSuccess        = "成功 (success)"
+	MsgFailed         = "失败 (failed)"
+	MsgInternalError  = "系统内部错误 (internal error)"
+	MsgInvalidParams  = "参数错误 (invalid parameters)"
+	MsgAmountTooSmall = "金额低于最小值 (amount below minimum)"
+	MsgInvalidAddress = "地址错误 (invalid address)"
+	MsgInsufficient   = "余额不足 (insufficient balance)"
+	MsgTooMany        = "数量过多 (too many)"
+	MsgLimitExceeded  = "超过限制 (limit exceeded)"
+
+	MsgOperationFailed = "操作失败 (operation failed)"
+	MsgAssetInvalid    = "资产信息错误 (invalid asset)"
+	MsgAssetLocked     = "资产不可划转 (asset not transferable)"
+	MsgUserNotFound    = "用户不存在 (user not found)"
+	MsgForbidden       = "无权限 (forbidden)"
+
+	MsgBankNotBound   = "请先绑定银行卡 (bank card not bound)"
+	MsgWithdrawLocked = "当前账户暂不可提现 (withdrawal locked)"
+
+	MsgResourceNotFound = "资源不存在 (resource not found)"
+	MsgCoinNotFound     = "币种不存在 (coin not found)"
+	MsgProductNotFound  = "产品不存在 (product not found)"
+	MsgOrderNotFound    = "订单不存在 (order not found)"
+
+	MsgUnauthorized  = "未授权 (not approved)"
+	MsgAlreadyExists = "已存在 (already exists)"
+	MsgAlreadyBound  = "已绑定 (already bound)"
+
+	MsgVerifyCodeInvalid = "验证码错误 (invalid verification code)"
+	MsgPasswordInvalid   = "密码错误 (invalid password)"
+
+	MsgTradeClosed        = "当前交易已关闭 (trade closed)"
+	MsgTradeTooSmall      = "交易金额过小 (trade amount too small)"
+	MsgLeverageInvalid    = "杠杆参数错误 (invalid leverage)"
+	MsgLeverageOrderOnly  = "当前不是杠杆订单 (not a leveraged order)"
+	MsgOrderLimitReached  = "已达到购买限制 (purchase limit reached)"
+	MsgAssetNotOwned      = "资产不存在 (asset not owned)"
+	MsgAssetLockedByTime  = "资产仍在锁定期 (asset locked by time)"
+	MsgCloseTimeInvalid   = "平仓时间错误 (invalid close time)"
+	MsgApprovalRequired   = "请先完成授权 (approval required)"
+	MsgProofRequired      = "请补全证明材料 (proof required)"
+	MsgWalletRequired     = "请先绑定钱包 (wallet required)"
+	MsgEmailInvalid       = "邮箱格式错误 (invalid email)"
+	MsgUsernameInvalid    = "用户名格式错误 (invalid username)"
+	MsgAlreadyRegistered  = "账号已存在 (account already exists)"
+	MsgInviteUserInvalid  = "邀请人不存在 (inviter not found)"
+	MsgGoogleAuthRequired = "需要谷歌验证 (google auth required)"
+	MsgTransNotAllowed    = "当前不允许划转 (transfer not allowed)"
+	MsgSameAsset          = "不能选择相同资产 (same asset)"
+	MsgPasswordRequired   = "请输入密码 (password required)"
+	MsgPasswordLength     = "密码长度需为 6-20 位 (password length must be 6-20)"
+	MsgPreviousOrderPending = "上一笔订单尚未完成 (previous order still pending)"
+)

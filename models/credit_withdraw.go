@@ -63,12 +63,20 @@ var creditWithdrawSvc = creditservice.NewWithdrawService(
 	creditWithdrawNotifier{},
 )
 
-func (m *CreditModel) CreateWithDraw(uid int, rq *WithDrawRequest) *RechargeResponse {
+func (m *CreditModel) CreateWithdraw(uid int, rq *WithdrawRequest) *RechargeResponse {
 	return creditWithdrawSvc.CreateWithdraw(uid, rq)
 }
 
-func (m *CreditModel) GetWithDrawList(uid int, rq *PageBaseRequest) *PageBaseResponse {
+func (m *CreditModel) CreateWithDraw(uid int, rq *WithDrawRequest) *RechargeResponse {
+	return m.CreateWithdraw(uid, rq)
+}
+
+func (m *CreditModel) GetWithdrawList(uid int, rq *PageBaseRequest) *PageBaseResponse {
 	return creditWithdrawSvc.GetWithdrawList(uid, rq)
+}
+
+func (m *CreditModel) GetWithDrawList(uid int, rq *PageBaseRequest) *PageBaseResponse {
+	return m.GetWithdrawList(uid, rq)
 }
 
 func (m *CreditModel) WithdrawInfo(uid int, sn string) db.DB_ROW_RESULT {

@@ -196,8 +196,8 @@ func (m *UserModel) ListRechargeApprovals(rq P) *AdminResponse {
 	if v := pdata.Get("state").ToString(); v != "" {
 		where = append(where, fmt.Sprintf("r.state = %s", v))
 	}
-	count := config.GlobalDB.JoinCount(models.DB_TABLE_RECHAGE_APPROVE+" as r", models.DB_TABLE_USER+" as u ", "r.uid = u.id", db.DB_PARAMS{"_": strings.Join(where, " AND")})
-	list, _ := config.GlobalDB.JoinTable(models.DB_TABLE_RECHAGE_APPROVE+" as r", models.DB_TABLE_USER+" as u ", "r.uid = u.id", db.DB_PARAMS{"_": strings.Join(where, " AND")}, db.DB_FIELDS{"r.*", "u.username"}, utils.Order(pdata.Get("orderby").ToString()), utils.Limit(pdata.Get("page").ToInt(), pdata.Get("limit").ToInt()))
+	count := config.GlobalDB.JoinCount(models.DB_TABLE_RECHARGE_APPROVE+" as r", models.DB_TABLE_USER+" as u ", "r.uid = u.id", db.DB_PARAMS{"_": strings.Join(where, " AND")})
+	list, _ := config.GlobalDB.JoinTable(models.DB_TABLE_RECHARGE_APPROVE+" as r", models.DB_TABLE_USER+" as u ", "r.uid = u.id", db.DB_PARAMS{"_": strings.Join(where, " AND")}, db.DB_FIELDS{"r.*", "u.username"}, utils.Order(pdata.Get("orderby").ToString()), utils.Limit(pdata.Get("page").ToInt(), pdata.Get("limit").ToInt()))
 
 	rs := make([]map[string]interface{}, 0)
 	for _, item := range list {
@@ -675,7 +675,7 @@ func (m *UserModel) ReviewWithdraw(id int, state int, info string, password stri
 			LockVCredit:     0,
 			TeamCoinLogType: models.TEAM_LOG_WITHDRAW,
 			TeamCoinLogInfo: models.QueueTeamLog{
-				WithDraw:   one.Credit,
+				Withdraw:   one.Credit,
 				CreateTime: utils.GetNow(),
 			},
 		})
