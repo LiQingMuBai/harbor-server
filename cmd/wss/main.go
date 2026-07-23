@@ -15,5 +15,7 @@ func main() {
 	log.Printf("START harbor-server wss")
 	log.Printf("service=wss port=%d", options.Port)
 	log.Printf("==================================================")
-	bootstrapwss.Run(options)
+	if err := bootstrapwss.Run(options); err != nil {
+		log.Fatal(err)
+	}
 }

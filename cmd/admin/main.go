@@ -15,5 +15,7 @@ func main() {
 	log.Printf("START harbor-server admin")
 	log.Printf("service=admin port=%d rpc_clients=%d", options.Port, len(options.RPCClients))
 	log.Printf("==================================================")
-	bootstrapadmin.Run(options)
+	if err := bootstrapadmin.Run(options); err != nil {
+		log.Fatal(err)
+	}
 }

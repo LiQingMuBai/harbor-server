@@ -19,7 +19,9 @@ func TestMongoConnect(t *testing.T) {
 		DBName: "admin",
 	}
 
-	m.CreateClient()
+	if err := m.CreateClient(); err != nil {
+		t.Fatalf("create client failed: %v", err)
+	}
 	if m.Clinet == nil {
 		t.Fatalf("mongo client is nil")
 	}

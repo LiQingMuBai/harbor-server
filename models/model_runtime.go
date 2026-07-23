@@ -30,9 +30,12 @@ func (rpc *RpcStruct) RunSystemCmd(cmd int, b *int) error {
 	return nil
 }
 
-func InitData() {
-	config.InitGlobal(true)
+func InitData() error {
+	if err := config.InitGlobal(true); err != nil {
+		return err
+	}
 	LoadInitData()
+	return nil
 }
 
 func CheckApprove() {

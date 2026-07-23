@@ -25,16 +25,22 @@ func OptionsFromEnv() Options {
 	}
 }
 
-func Run(options Options) {
-	initializeAdmin()
+func Run(options Options) error {
+	if err := initializeAdmin(); err != nil {
+		return err
+	}
 	startAdminBackgroundJobs(options)
 	httpServer := createAdminHTTPServer()
 	httpServer.Run(options.Port)
+	return nil
 }
 
-func initializeAdmin() {
-	models.InitData()
+func initializeAdmin() error {
+	if err := models.InitData(); err != nil {
+		return err
+	}
 	adminservice.SYSTEM_MODEL.LoadSiteConfig()
+	return nil
 }
 
 func startAdminBackgroundJobs(options Options) {

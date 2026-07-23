@@ -19,7 +19,7 @@ func RpcServer(addr string, port int) { //进程内驻守的RPCserver
 	l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", addr, port))
 	if err != nil {
 		utils.ServiceError("rpc listen error:", err)
-		panic(err)
+		return
 	}
 	http.Serve(l, nil)
 }

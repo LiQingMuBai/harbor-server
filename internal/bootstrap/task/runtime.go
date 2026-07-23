@@ -29,7 +29,9 @@ func OptionsFromArgs(args []string) (Options, error) {
 }
 
 func Run(options Options) error {
-	models.InitData()
+	if err := models.InitData(); err != nil {
+		return err
+	}
 	switch options.Mode {
 	case "data":
 		runDataMode()

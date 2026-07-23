@@ -6,7 +6,6 @@ import (
 	"cointrade/utils"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"reflect"
 	"strings"
 )
@@ -91,14 +90,14 @@ var GlobalSMS *utils.SmsAPI
 
 var GlobalMongo *db.MongoDB
 
-func InitGlobal(ismodel bool) {
+func InitGlobal(ismodel bool) error {
 	GlobalSMS = new(utils.SmsAPI)
 	//加载时读取CONFIG文件
 	GlobalConfig.GetConfig("config.json")
 	GlobalSMS.AppId = GlobalConfig.GetValue("SMSID").ToString()
 	GlobalSMS.AppKey = GlobalConfig.GetValue("SMSKEY").ToString()
 	if !ismodel {
-		return
+		return nil
 	}
 	GlobalDB = new(db.MysqlWorker)
 	GlobalDB.SetLinkInfo(
@@ -110,8 +109,8 @@ func InitGlobal(ismodel bool) {
 	)
 	err := GlobalDB.Connect()
 	if err != nil {
-		utils.Log("mysql error:", err.Error())
-		//panic(nil)
+		utils.ServiceError("mysql connect failed:", err)
+		return err
 	}
 
 	GlobalRedis = new(redis.Redis)
@@ -126,7 +125,8 @@ func InitGlobal(ismodel bool) {
 	GlobalRedis.SetLinkInfo(GlobalConfig.GetValue("redis_host").ToString(), GlobalConfig.GetValue("redis_port").ToInt(), redisUser, redisPassword, 50, 5)
 	err = GlobalRedis.Connect()
 	if err != nil {
-		log.Fatal("redis error", err.Error())
+		utils.ServiceError("redis connect failed:", err)
+		return err
 	}
 
 	//开始初始化MONGODB
@@ -137,10 +137,14 @@ func InitGlobal(ismodel bool) {
 	GlobalMongo.DBName = GlobalConfig.GetValue("mongo_dbname").ToString()
 	GlobalMongo.URI = GlobalConfig.GetValue("mongo_uri").ToString()
 
-	GlobalMongo.CreateClient()
+	if err = GlobalMongo.CreateClient(); err != nil {
+		utils.ServiceError("mongo connect failed:", err)
+		return err
+	}
 	//MONGODB初始化完成
 	GetSettingConfig()
 	//fmt.Println(GlobalConfig.GetValue("test_withdrawnum").ToInt())
+	return nil
 }
 func (m *MConfig) GetConfig(filename string) {
 	m.ConfigMap = make(map[string]interface{})
@@ -208,46 +212,53 @@ func (m *MConfig) GetValue(key string) *ConfigValue {
 }
 func (m *ConfigValue) ToString() string {
 	if m.Value == nil {
-		panic(m)
+		return ""
 	}
 	return utils.GetJsonValue(m.Value)
 }
 
 func (m *ConfigValue) ToInt() int {
 	if m.Value == nil {
-		panic(m)
+		return 0
 	}
 	return utils.GetInt(utils.GetJsonValue(m.Value))
 }
 func (m *ConfigValue) ToFloat() float64 {
 	if m.Value == nil {
-		panic(m)
+		return 0
 	}
 	return utils.GetFloat(utils.GetJsonValue(m.Value))
 }
 func (m *ConfigValue) ToConfig() *MConfig {
 	if m.Value == nil {
-
-		panic(m)
+		return nil
 	}
 	rs := new(MConfig)
 	t := reflect.TypeOf(m.Value)
 	if t.Kind() != reflect.Map {
 		return nil
 	}
-	rs.ConfigMap = m.Value.(map[string]interface{})
+	configMap, ok := m.Value.(map[string]interface{})
+	if !ok {
+		return nil
+	}
+	rs.ConfigMap = configMap
 	return rs
 }
 func (m *ConfigValue) ToArray() []*ConfigValue {
 	if m.Value == nil {
-		panic(m)
+		return nil
 	}
 	t := reflect.TypeOf(m.Value)
-	if t.Kind() != reflect.Array {
+	if t.Kind() != reflect.Array && t.Kind() != reflect.Slice {
 		return nil
 	}
 	rs := make([]*ConfigValue, 0)
-	for _, v := range m.Value.([]interface{}) {
+	values, ok := m.Value.([]interface{})
+	if !ok {
+		return nil
+	}
+	for _, v := range values {
 
 		tmp := new(ConfigValue)
 		tmp.Value = v

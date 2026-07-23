@@ -22,7 +22,7 @@ type MongoDB struct {
 	Session  *mongo.Session
 }
 
-func (m *MongoDB) CreateClient() {
+func (m *MongoDB) CreateClient() error {
 	uri := m.URI
 	if uri == "" {
 		uri = fmt.Sprintf("mongodb://%s:%d", m.Host, m.Port)
@@ -44,14 +44,14 @@ func (m *MongoDB) CreateClient() {
 	}
 	c, err := mongo.Connect(context.TODO(), m_options)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	m.Clinet = c
 
 	m.DBHandle = m.Clinet.Database(m.DBName)
 	//s, _ := m.Clinet.StartSession()
 	//m.Session = &s
-
+	return nil
 }
 
 func (m *MongoDB) InsertData(table string, data interface{}) *mongo.InsertOneResult {

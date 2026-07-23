@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"fmt"
-	"log"
 	"math/big"
 
 	"cointrade/store"
@@ -249,7 +248,8 @@ func (m *EthLib) CreateWalletAddress() (string, string) {
 	privateKey, err := crypto.GenerateKey()
 
 	if err != nil {
-		log.Fatal(err)
+		utils.ServiceError("generate wallet key failed:", err)
+		return "", ""
 	}
 
 	privateKeyBytes := crypto.FromECDSA(privateKey)
@@ -258,7 +258,8 @@ func (m *EthLib) CreateWalletAddress() (string, string) {
 	publicKey := privateKey.Public()
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
 	if !ok {
-		log.Fatal("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
+		utils.ServiceError("public key type assert failed")
+		return "", ""
 	}
 
 	publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
@@ -274,7 +275,8 @@ func (m *EthLib) GetBalance(address string) *big.Float { //获取地址余额 ET
 	account := common.HexToAddress(address)
 	balance, err := m.Client.BalanceAt(context.Background(), account, nil)
 	if err != nil {
-		log.Fatal(err)
+		utils.ServiceError("fetch eth balance failed:", err)
+		return big.NewFloat(0)
 	}
 	b := new(big.Float)
 	b.SetString(balance.String())
@@ -285,19 +287,22 @@ func (m *EthLib) GetBalanceOfUsdt(usdt_address string) *big.Float { //获取代�
 	tokenAddress := common.HexToAddress(m.GetTokenAddress()) //查询USDT
 	instance, err := token.NewToken(tokenAddress, m.Client)
 	if err != nil {
-		log.Fatal(err)
+		utils.ServiceError("create usdt token client failed:", err)
+		return big.NewFloat(0)
 	}
 
 	address := common.HexToAddress(usdt_address)
 	bal, err := instance.BalanceOf(&bind.CallOpts{}, address)
 	if err != nil {
-		log.Fatal(err)
+		utils.ServiceError("fetch usdt balance failed:", err)
+		return big.NewFloat(0)
 	}
 
 	decimals, err := instance.Decimals(&bind.CallOpts{})
 	utils.ServiceInfo("usdt decimals:", decimals)
 	if err != nil {
-		log.Fatal(err)
+		utils.ServiceError("fetch usdt decimals failed:", err)
+		return big.NewFloat(0)
 	}
 
 	fbal := new(big.Float)

@@ -20,9 +20,12 @@ func OptionsFromEnv() Options {
 	}
 }
 
-func Run(options Options) {
-	models.InitData()
+func Run(options Options) error {
+	if err := models.InitData(); err != nil {
+		return err
+	}
 	httprun.StartAPIBackgroundJobs(options.LocalIP, options.RPCPort)
 	httpServer := httprun.CreateAPIHTTPServer()
 	httpServer.Run(options.ServerPort)
+	return nil
 }

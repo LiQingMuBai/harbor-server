@@ -196,8 +196,8 @@ func (m *ModuleBase) LogWrite(r *gin.Engine) {
 		)
 	}
 	writer := gin.DefaultWriter
-	if file, err := utils.OpenServiceLog("http-access.log"); err == nil {
-		writer = io.MultiWriter(file, gin.DefaultWriter)
+	if accessWriter, err := utils.NewServiceAccessLogWriter(); err == nil {
+		writer = io.MultiWriter(accessWriter, gin.DefaultWriter)
 	}
 	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
 		Formatter: formatter,
@@ -224,7 +224,7 @@ func Recovery() gin.HandlerFunc {
 				c.Abort()
 				//response.Code, response.Message = configure.ApiInnerResponseError, fmt.Sprintf("Api内部报错，请联系管理员(id=%s", traceId)
 				//log.WithFields(logField).Error(err) // 输出panic 信息
-				_ = utils.AppendServiceLog("panic.log", utils.GetJsonValue(logField))
+				_ = utils.AppendServicePanicLog(utils.GetJsonValue(logField))
 				//dao.ModelClient.RedisClient.HMSet(traceId, redisField) // 上报redis
 				//c.JSON(http.StatusUnauthorized, response)
 				return

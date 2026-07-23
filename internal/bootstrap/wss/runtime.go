@@ -16,9 +16,12 @@ func OptionsFromEnv() Options {
 	}
 }
 
-func Run(options Options) {
-	models.InitData()
+func Run(options Options) error {
+	if err := models.InitData(); err != nil {
+		return err
+	}
 	httpServer := httprun.CreateWSSHTTPServer()
 	httprun.StartWSSBackgroundJobs()
 	httpServer.Run(options.Port)
+	return nil
 }
