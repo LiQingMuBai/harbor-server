@@ -1,4 +1,4 @@
-package adminmodule
+package handler
 
 import "cointrade/http/common"
 

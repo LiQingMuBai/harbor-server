@@ -1,8 +1,8 @@
-package adminmodule
+package handler
 
 import (
-	adminmodel "cointrade/adminmodel"
 	"cointrade/http/common"
+	adminservice "cointrade/internal/admin/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,77 +26,77 @@ func (m *AdminUserModule) tradeRoutes() common.MODULEHANDLELIST {
 }
 
 func (m *AdminUserModule) ReviewSpotDelegate(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_TRADE.ReviewSpotDelegate(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_TRADE.ReviewSpotDelegate(rq))
 }
 
 func (m *AdminUserModule) SpotDelegate(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_TRADE.ListDelegates(rq, true, ""))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_TRADE.ListDelegates(rq, true, ""))
 }
 
 func (m *AdminUserModule) DeleteDelegateHistory(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_TRADE.DeleteDelegateHistory(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_TRADE.DeleteDelegateHistory(id))
 }
 
 func (m *AdminUserModule) ListDelegateHistory(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
 	rq["state"] = 1
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_TRADE.ListDelegates(rq, true, ""))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_TRADE.ListDelegates(rq, true, ""))
 }
 
 func (m *AdminUserModule) DelegateNow(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
 	rq["state"] = 0
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_TRADE.ListDelegates(rq, true, ""))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_TRADE.ListDelegates(rq, true, ""))
 }
 
 func (m *AdminUserModule) ExecuteManualDelegateTrade(r *gin.Context) {
 	uid := m.GetInt(r, "uid")
 	sn := m.GetValue(r, "sn")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_TRADE.ExecuteManualDelegateTrade(uid, sn))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_TRADE.ExecuteManualDelegateTrade(uid, sn))
 }
 
 func (m *AdminUserModule) ListOpenTrades(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
 	rq["state"] = 1
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_TRADE.ListOpenTrades(rq, true, ""))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_TRADE.ListOpenTrades(rq, true, ""))
 }
 
 func (m *AdminUserModule) ListClosedTrades(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_TRADE.ListClosedTrades(rq, true, ""))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_TRADE.ListClosedTrades(rq, true, ""))
 }
 
 func (m *AdminUserModule) StopMiningOrder(r *gin.Context) {
 	id := m.GetInt(r, "id")
 	pass := m.GetValue(r, "pass")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.StopMiningOrder(id, pass))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.StopMiningOrder(id, pass))
 }
 
 func (m *AdminUserModule) ListMiningOrders(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.ListMiningOrders(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.ListMiningOrders(rq))
 }
 
 func (m *AdminUserModule) DeleteExplodeTrade(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.DeleteExplodeTrade(m.GetInt(r, "id")))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.DeleteExplodeTrade(m.GetInt(r, "id")))
 }
 
 func (m *AdminUserModule) SaveExplodeTrade(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.SaveExplodeTrade(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.SaveExplodeTrade(rq))
 }
 
 func (m *AdminUserModule) ExplodeList(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.ExplodeTradeList())
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.ExplodeTradeList())
 }

@@ -1,9 +1,9 @@
-package adminmodule
+package handler
 
 import (
-	adminmodel "cointrade/adminmodel"
 	"cointrade/config"
 	"cointrade/http/common"
+	adminservice "cointrade/internal/admin/service"
 	"cointrade/lib/db"
 	"cointrade/models"
 
@@ -51,194 +51,194 @@ func (m *AdminUserModule) systemRoutes() common.MODULEHANDLELIST {
 }
 
 func (m *AdminUserModule) AuditAccept(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.AuditAccept(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.AuditAccept(rq))
 }
 
 func (m *AdminUserModule) LoanList(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.LoanList())
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.LoanList())
 }
 
 func (m *AdminUserModule) LoanSetting(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.LoanSetting(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.LoanSetting(rq))
 }
 
 func (m *AdminUserModule) DeleteMiningAcceptance(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.DeleteMiningAcceptance(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.DeleteMiningAcceptance(id))
 }
 
 func (m *AdminUserModule) SaveMiningAcceptance(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.SaveMiningAcceptance(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.SaveMiningAcceptance(rq))
 }
 
 func (m *AdminUserModule) AcceptList(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.AcceptList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.AcceptList(rq))
 }
 
 func (m *AdminUserModule) DeleteController(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.DeleteController(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.DeleteController(rq))
 }
 
 func (m *AdminUserModule) ControllerList(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.ControllerTradeList())
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.ControllerTradeList())
 }
 
 func (m *AdminUserModule) ExplodeController(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.ExplodeController(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.ExplodeController(rq))
 }
 
 func (m *AdminUserModule) KlineController(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.KlineController(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.KlineController(rq))
 }
 
 func (m *AdminUserModule) DeleteRule(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.DeleteRule(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.DeleteRule(rq))
 }
 
 func (m *AdminUserModule) Rulelist(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.Rulelist(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.Rulelist(rq))
 }
 
 func (m *AdminUserModule) RuleHandler(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.RuleHandler(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.RuleHandler(rq))
 }
 
 func (m *AdminUserModule) StatictisCount(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.StatictisCount())
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.StatictisCount())
 }
 
 func (m *AdminUserModule) ClearNotify(r *gin.Context) {
 	tp := m.GetValue(r, "type")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.ClearNotify(tp))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.ClearNotify(tp))
 }
 
 func (m *AdminUserModule) NotifyList(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.NotifyList())
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.NotifyList())
 }
 
 func (m *AdminUserModule) SiteCount(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.AdminResponse{State: 2000, Data: adminmodel.SYSTEM_MODEL.SiteCount(rq)})
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.AdminResponse{State: 2000, Data: adminservice.SYSTEM_MODEL.SiteCount(rq)})
 }
 
 func (m *AdminUserModule) Setting(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.Setting(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.Setting(rq))
 }
 
 func (m *AdminUserModule) NoticeList(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.NoticeList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.NoticeList(rq))
 }
 
 func (m *AdminUserModule) SaveNotice(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.SaveNotice(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.SaveNotice(rq))
 }
 
 func (m *AdminUserModule) DeleteNotice(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.DeleteNotice(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.DeleteNotice(id))
 }
 
 func (m *AdminUserModule) DeleteMiningProduct(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.DeleteMiningProduct(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.DeleteMiningProduct(id))
 }
 
 func (m *AdminUserModule) SaveMiningProduct(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.SaveMiningProduct(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.SaveMiningProduct(rq))
 }
 
 func (m *AdminUserModule) MinnerOpen(r *gin.Context) {
 	id := m.GetInt(r, "id")
 	key := m.GetValue(r, "key")
 	isopen := m.GetInt(r, "state")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.MinnerSet(id, key, isopen))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.MinnerSet(id, key, isopen))
 }
 
 func (m *AdminUserModule) ListMiningProducts(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.ListMiningProducts(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.ListMiningProducts(rq))
 }
 
 func (m *AdminUserModule) DeleteCurrency(r *gin.Context) {
 	id := m.GetValue(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.DeleteCurrency(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.DeleteCurrency(id))
 }
 
 func (m *AdminUserModule) SaveCurrency(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.SaveCurrency(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.SaveCurrency(rq))
 }
 
 func (m *AdminUserModule) CurrencyList(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.CurrencyList())
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.CurrencyList())
 }
 
 func (m *AdminUserModule) DeleteCoin(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.DeleteCoin(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.DeleteCoin(rq))
 }
 
 func (m *AdminUserModule) SaveCoin(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.SaveCoin(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.SaveCoin(rq))
 }
 
 func (m *AdminUserModule) CoinDescList(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.CoinDescList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.CoinDescList(rq))
 }
 
 func (m *AdminUserModule) SaveCoinDesc(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.SaveCoinDesc(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.SaveCoinDesc(rq))
 }
 
 func (m *AdminUserModule) DeleteCoinDesc(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.DeleteCoinDesc(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.DeleteCoinDesc(id))
 }
 
 func (m *AdminUserModule) CoinList(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.CoinList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.CoinList(rq))
 }
 
 func (m *AdminUserModule) kline_config(r *gin.Context) {
@@ -252,8 +252,8 @@ func (m *AdminUserModule) kline_config(r *gin.Context) {
 	klineConfig.MinPrice = m.GetFloat(r, "min_price")
 	klineConfig.UpRate = m.GetInt(r, "up_rate")
 	config.GlobalDB.UpdateData(models.DB_TABLE_COINS, db.DB_PARAMS{"kline_config": klineConfig}, db.DB_PARAMS{"id": id})
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, &adminmodel.AdminResponse{
-		State: adminmodel.SUCCESS,
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, &adminservice.AdminResponse{
+		State: adminservice.SUCCESS,
 		Data:  "已提交控制!",
 	})
 }

@@ -1,4 +1,4 @@
-package adminmodel
+package service
 
 import (
 	"cointrade/lib/db"

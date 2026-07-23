@@ -1,9 +1,9 @@
-package adminmodule
+package handler
 
 import (
-	adminmodel "cointrade/adminmodel"
 	"cointrade/config"
 	"cointrade/http/common"
+	adminservice "cointrade/internal/admin/service"
 	"cointrade/lib/db"
 	"cointrade/utils"
 	"regexp"
@@ -30,73 +30,73 @@ func (m *AdminUserModule) authRoutes() common.MODULEHANDLELIST {
 }
 
 func (m *AdminUserModule) Login(r *gin.Context) {
-	var request adminmodel.LoginRequest
+	var request adminservice.LoginRequest
 	m.ConvertObject(r, &request)
 	request.ClientIp = r.ClientIP()
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.Login(request))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.Login(request))
 }
 
 func (m *AdminUserModule) Logout(r *gin.Context) {
 	sid := r.GetString("sid")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.AdminResponse{State: adminmodel.SUCCESS, Data: adminmodel.MODEL_USER.Logout(sid)})
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.AdminResponse{State: adminservice.SUCCESS, Data: adminservice.MODEL_USER.Logout(sid)})
 }
 
 func (m *AdminUserModule) GetTokenInfo(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.GetTokenInfo(r.GetString("sid")))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.GetTokenInfo(r.GetString("sid")))
 }
 
 func (m *AdminUserModule) SaveAdmin(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.SaveAdmin(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.SaveAdmin(rq))
 }
 
 func (m *AdminUserModule) GetMenuTree(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.GetMenuTree())
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.GetMenuTree())
 }
 
 func (m *AdminUserModule) RoleList(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.RoleList())
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.RoleList())
 }
 
 func (m *AdminUserModule) GetRoleMenuTree(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.GetRoleMenuTree())
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.GetRoleMenuTree())
 }
 
 func (m *AdminUserModule) ListAdmins(r *gin.Context) {
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.ListAdmins())
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.ListAdmins())
 }
 
 func (m *AdminUserModule) DeleteAdmin(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.DeleteAdmin(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.DeleteAdmin(id))
 }
 
 func (m *AdminUserModule) DeleteMenu(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.DeleteMenu(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.DeleteMenu(rq))
 }
 
 func (m *AdminUserModule) SaveMenu(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.SaveMenu(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.SaveMenu(rq))
 }
 
 func (m *AdminUserModule) SaveRole(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.SaveRole(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.SaveRole(rq))
 }
 
 func (m *AdminUserModule) CheckLogin(r *gin.Context) {
 	sid := r.GetString("sid")
-	u := adminmodel.MODEL_USER.GetAdminBySession(sid)
-	rq := make(adminmodel.P, 0)
+	u := adminservice.MODEL_USER.GetAdminBySession(sid)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
 	if u == nil {
-		m.SendResponse(r, common.HTTP_CODE_SUCCESS, &adminmodel.AdminResponse{
+		m.SendResponse(r, common.HTTP_CODE_SUCCESS, &adminservice.AdminResponse{
 			State: 50008,
 			Data:  "当前用户的sid无法获取到值",
 		})

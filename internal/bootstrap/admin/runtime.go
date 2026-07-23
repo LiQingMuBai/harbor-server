@@ -1,10 +1,10 @@
 package admin
 
 import (
-	adminmodel "cointrade/adminmodel"
-	adminmodule "cointrade/adminmodule"
 	"cointrade/config"
 	"cointrade/http/common"
+	adminhandler "cointrade/internal/admin/handler"
+	adminservice "cointrade/internal/admin/service"
 	"cointrade/internal/bootstrap/shared"
 	"cointrade/models"
 	"encoding/json"
@@ -34,7 +34,7 @@ func Run(options Options) {
 
 func initializeAdmin() {
 	models.InitData()
-	adminmodel.SYSTEM_MODEL.LoadSiteConfig()
+	adminservice.SYSTEM_MODEL.LoadSiteConfig()
 }
 
 func startAdminBackgroundJobs(options Options) {
@@ -47,7 +47,7 @@ func startAdminBackgroundJobs(options Options) {
 func createAdminHTTPServer() *common.HttpModules {
 	common.ModuleGlobal.EncodeFlag = false
 	httpServer := common.CreateHttp()
-	adminUser := new(adminmodule.AdminUserModule)
+	adminUser := new(adminhandler.AdminUserModule)
 	httpServer.LoadModule(adminUser)
 	return httpServer
 }

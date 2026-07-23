@@ -2,8 +2,8 @@ package taskshell
 
 import (
 	"bytes"
-	adminmodel "cointrade/adminmodel"
 	"cointrade/config"
+	adminservice "cointrade/internal/admin/service"
 	"cointrade/lib/db"
 	"cointrade/models"
 	"cointrade/utils"
@@ -719,7 +719,7 @@ func ControllerKlineQueue() {
 				fmt.Println("解析控制失败......")
 				continue
 			} else {
-				data := make(adminmodel.P, 0)
+				data := make(adminservice.P, 0)
 				if err = json.Unmarshal(b, &data); err != nil {
 					fmt.Println("任务解析失败， 跳过!")
 					continue
@@ -749,7 +749,7 @@ func ControllerKlineQueue() {
 					config.GlobalMongo.FindAndReplace(models.COIN_CONTROLLER, item, bson.M{"sn": re.Get("sn").ToString()})
 				}
 				//}
-				adminmodel.SYSTEM_MODEL.GenerateData(data)
+				adminservice.SYSTEM_MODEL.GenerateData(data)
 
 			}
 			time.Sleep(time.Second * 1) //休息2s再生成

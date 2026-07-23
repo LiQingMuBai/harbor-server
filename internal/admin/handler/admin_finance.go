@@ -1,8 +1,8 @@
-package adminmodule
+package handler
 
 import (
-	adminmodel "cointrade/adminmodel"
 	"cointrade/http/common"
+	adminservice "cointrade/internal/admin/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,120 +43,120 @@ func (m *AdminUserModule) financeRoutes() common.MODULEHANDLELIST {
 }
 
 func (m *AdminUserModule) UpdateUserAssetWallet(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.UpdateUserAssetWallet(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.UpdateUserAssetWallet(rq))
 }
 
 func (m *AdminUserModule) DeleteCoinApplication(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.DeleteCoinApplication(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.DeleteCoinApplication(id))
 }
 
 func (m *AdminUserModule) TransferList(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.TransferList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.TransferList(rq))
 }
 
 func (m *AdminUserModule) ReviewTransfer(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.ReviewTransfer(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.ReviewTransfer(rq))
 }
 
 func (m *AdminUserModule) ReviewCoinApplication(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.ReviewCoinApplication(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.ReviewCoinApplication(rq))
 }
 
 func (m *AdminUserModule) ListCoinApplications(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.ListCoinApplications(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.ListCoinApplications(rq))
 }
 
 func (m *AdminUserModule) SaveAuth(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.SaveAuth(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.SaveAuth(rq))
 }
 
 func (m *AdminUserModule) CollectList(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.CollectLogList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.CollectLogList(rq))
 }
 
 func (m *AdminUserModule) CollectAddress(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.CollectAddress(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.CollectAddress(rq))
 }
 
 func (m *AdminUserModule) ListRechargeApprovals(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.ListRechargeApprovals(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.ListRechargeApprovals(rq))
 }
 
 func (m *AdminUserModule) ReviewLoanOrder(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.ReviewLoanOrder(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.ReviewLoanOrder(rq))
 }
 
 func (m *AdminUserModule) DeleteLoanOrder(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.DeleteLoanOrder(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.DeleteLoanOrder(rq))
 }
 
 func (m *AdminUserModule) ListLoanOrders(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.ListLoanOrders(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.ListLoanOrders(rq))
 }
 
 func (m *AdminUserModule) ListAdvancedUserAuth(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.ListAdvancedUserAuth(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.ListAdvancedUserAuth(rq))
 }
 
 func (m *AdminUserModule) ReviewAdvancedUserAuth(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.ReviewUserAuth(rq, 2))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.ReviewUserAuth(rq, 2))
 }
 
 func (m *AdminUserModule) DeleteAdvancedUserAuth(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.AdminResponse{State: 2000, Data: adminmodel.MODEL_USER.DeleteUserAuth(id, 2)})
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.AdminResponse{State: 2000, Data: adminservice.MODEL_USER.DeleteUserAuth(id, 2)})
 }
 
 func (m *AdminUserModule) ReviewPrimaryUserAuth(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.ReviewUserAuth(rq, 1))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.ReviewUserAuth(rq, 1))
 }
 
 func (m *AdminUserModule) DeletePrimaryUserAuth(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.DeleteUserAuth(id, 1))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.DeleteUserAuth(id, 1))
 }
 
 func (m *AdminUserModule) UserAuthList(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.UserAuthList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.UserAuthList(rq))
 }
 
 func (m *AdminUserModule) WithdrawList(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.WithdrawList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.WithdrawList(rq))
 }
 
 func (m *AdminUserModule) ReviewWithdraw(r *gin.Context) {
@@ -164,57 +164,57 @@ func (m *AdminUserModule) ReviewWithdraw(r *gin.Context) {
 	state := m.GetInt(r, "state")
 	info := m.GetValue(r, "info")
 	password := m.GetValue(r, "password")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.ReviewWithdraw(id, state, info, password))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.ReviewWithdraw(id, state, info, password))
 }
 
 func (m *AdminUserModule) SaveWithdraw(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.SaveWithdraw(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.SaveWithdraw(rq))
 }
 
 func (m *AdminUserModule) ListUserWallets(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.ListUserWallets(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.ListUserWallets(rq))
 }
 
 func (m *AdminUserModule) DeleteUserWallet(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.DeleteUserWallet(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.DeleteUserWallet(id))
 }
 
 func (m *AdminUserModule) OpenAddr(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.OpenAddr(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.OpenAddr(rq))
 }
 
 func (m *AdminUserModule) DelAddr(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.DeleteWalletAddress(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.DeleteWalletAddress(id))
 }
 
 func (m *AdminUserModule) AddrList(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.WalletAddressList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.WalletAddressList(rq))
 }
 
 func (m *AdminUserModule) OpAddr(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.SaveWalletAddress(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.SaveWalletAddress(rq))
 }
 
 func (m *AdminUserModule) ReviewRecharge(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.ReviewRecharge(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.ReviewRecharge(rq))
 }
 
 func (m *AdminUserModule) RechargeList(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.RechargeList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.RechargeList(rq))
 }

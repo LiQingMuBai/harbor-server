@@ -1,4 +1,4 @@
-package adminmodel
+package service
 
 type UserModel struct {
 }

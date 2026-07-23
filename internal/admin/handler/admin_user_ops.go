@@ -1,8 +1,8 @@
-package adminmodule
+package handler
 
 import (
-	adminmodel "cointrade/adminmodel"
 	"cointrade/http/common"
+	adminservice "cointrade/internal/admin/service"
 	"cointrade/models"
 
 	"github.com/gin-gonic/gin"
@@ -30,89 +30,89 @@ func (m *AdminUserModule) userRoutes() common.MODULEHANDLELIST {
 
 func (m *AdminUserModule) UserInfo(r *gin.Context) {
 	uid := m.GetInt(r, "uid")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, &adminmodel.AdminResponse{
-		State: adminmodel.SUCCESS,
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, &adminservice.AdminResponse{
+		State: adminservice.SUCCESS,
 		Data:  models.MODEL_USER.GetBaseInfo(uid),
 	})
 }
 
 func (m *AdminUserModule) SaveParentMemo(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.SaveParentMemo(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.SaveParentMemo(rq))
 }
 
 func (m *AdminUserModule) Assets(r *gin.Context) {
 	uid := m.GetInt(r, "uid")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.GetUserAssetOverview(uid))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.GetUserAssetOverview(uid))
 }
 
 func (m *AdminUserModule) UserControllerExp(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.UserControllerExp(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.UserControllerExp(rq))
 }
 
 func (m *AdminUserModule) DeleteAgent(r *gin.Context) {
 	id := m.GetInt(r, "id")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_AGENT.DeleteAgent(id))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_AGENT.DeleteAgent(id))
 }
 
 func (m *AdminUserModule) UserCoinLog(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.UserCoinLog(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.UserCoinLog(rq))
 }
 
 func (m *AdminUserModule) EmployerList(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_AGENT.EmpoyerList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_AGENT.EmpoyerList(rq))
 }
 
 func (m *AdminUserModule) AgentList(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_AGENT.AgentList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_AGENT.AgentList(rq))
 }
 
 func (m *AdminUserModule) AgentCount(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_AGENT.AgentCountList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_AGENT.AgentCountList(rq))
 }
 
 func (m *AdminUserModule) ChangeCoin(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.AdjustUserCredit(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.AdjustUserCredit(rq))
 }
 
 func (m *AdminUserModule) KickUser(r *gin.Context) {
 	uid := m.GetInt(r, "uid")
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.SYSTEM_MODEL.KickUser(uid))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.SYSTEM_MODEL.KickUser(uid))
 }
 
 func (m *AdminUserModule) SaveUser(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.SaveUser(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.SaveUser(rq))
 }
 
 func (m *AdminUserModule) UserLevelCount(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.UserTeamLevelCount(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.UserTeamLevelCount(rq))
 }
 
 func (m *AdminUserModule) UserAsset(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.UserAssetList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.UserAssetList(rq))
 }
 
 func (m *AdminUserModule) UserList(r *gin.Context) {
-	rq := make(adminmodel.P, 0)
+	rq := make(adminservice.P, 0)
 	m.ConvertObject(r, &rq)
-	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminmodel.MODEL_USER.UserList(rq))
+	m.SendResponse(r, common.HTTP_CODE_SUCCESS, adminservice.MODEL_USER.UserList(rq))
 }
