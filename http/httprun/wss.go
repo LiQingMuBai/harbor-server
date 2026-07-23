@@ -87,6 +87,7 @@ type WwebsocketWorker struct {
 
 func StartWSSBackgroundJobs() {
 	DataUpdateFunc()
+	go DBMessageService()
 	go MessageService()
 	go DBServiceMessageReciveFunc()
 	go DataService()
@@ -144,35 +145,40 @@ func DataUpdateFunc() {
 	}()*/
 
 }
-func DataService() { //单携程的发送行情数据，避免死循环还是
-	n := 0
-	for {
-		ntime := utils.GetNow()
-		WS_GLOBAL_LOCK.RLock()
-		for _, v := range USER_SOCKET_LIST {
+func snapshotUserSockets() []*WwebsocketWorker {
+	WS_GLOBAL_LOCK.RLock()
+	list := make([]*WwebsocketWorker, 0, len(USER_SOCKET_LIST))
+	for _, worker := range USER_SOCKET_LIST {
+		list = append(list, worker)
+	}
+	WS_GLOBAL_LOCK.RUnlock()
+	return list
+}
 
-			if n > 500 {
-				go v.CheckPing(v.WebState, v.Ws)
+func DataService() { //单协程发送，避免高频派生 goroutine 压垮调度器
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+
+	pingCycle := 0
+	for range ticker.C {
+		ntime := utils.GetNow()
+		workers := snapshotUserSockets()
+		shouldCheckPing := pingCycle >= 50
+		for _, v := range workers {
+			if shouldCheckPing {
+				v.CheckPing(v.WebState, v.Ws)
 			}
 			if ntime-v.LastSendTime >= 1 {
-				/*dataCode := v.WebState.GetInt("datacode")
-				only := v.WebState.GetString("only")
-				period := v.WebState.GetString("period")
-
-				history_state := v.WebState.GetInt("history")
-				fmt.Println("send to ", v.WebState.GetInt("uid"), " code:", dataCode, " period:", period, " history_state:", history_state, " only:", only)*/
 				v.LastSendTime = ntime
-				go v.SendData(v.WebState, v.Ws)
+				v.SendData(v.WebState, v.Ws)
 			}
 		}
-		WS_GLOBAL_LOCK.RUnlock()
-		if n > 500 {
-			n = 0
+		if shouldCheckPing {
+			pingCycle = 0
+			continue
 		}
-		n++
-		time.Sleep(10 * time.Millisecond)
+		pingCycle++
 	}
-
 }
 func DBMessageService() {
 	//消息入库

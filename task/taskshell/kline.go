@@ -102,6 +102,7 @@ func GetKine() {
 	so := connect()
 	for {
 		if so == nil {
+			time.Sleep(3 * time.Second)
 			so = connect()
 		} else {
 			break
@@ -113,6 +114,7 @@ func GetKine() {
 			_, buf, e := so.ReadMessage()
 			if e != nil {
 				fmt.Println(e.Error())
+				time.Sleep(3 * time.Second)
 				so = connect()
 				continue
 			}
@@ -714,6 +716,10 @@ func ControllerKlineQueue() {
 
 	for {
 		contro_list := config.GlobalMongo.GetList(models.COIN_CONTROLLER, bson.M{"controller_type": bson.M{`$ne`: ""}}, nil, 100)
+		if len(contro_list) == 0 {
+			time.Sleep(time.Second)
+			continue
+		}
 		for _, item := range contro_list {
 			if b, err := json.Marshal(item); err != nil {
 				fmt.Println("解析控制失败......")
@@ -755,6 +761,7 @@ func ControllerKlineQueue() {
 			time.Sleep(time.Second * 1) //休息2s再生成
 
 		}
+		time.Sleep(time.Second)
 	}
 
 }

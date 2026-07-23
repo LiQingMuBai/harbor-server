@@ -87,7 +87,7 @@ func GetTradeData() {
 	//err = so.WriteJSON(RequestStruct{Sub: "market.btcusdt.ticker", Id: id})
 	PairLock = make(map[string]*sync.RWMutex)
 	go DataOp()
-	so := Connect()
+	so := reconnectTradeSocket()
 	/*coins := models.COIN_LIST
 	for _, v := range coins {
 		pair := v["pair"]
@@ -103,21 +103,26 @@ func GetTradeData() {
 	ReciveFunc(so)
 	//<-c
 }
+
+func reconnectTradeSocket() *websocket.Conn {
+	for {
+		so := Connect()
+		if so != nil {
+			return so
+		}
+		fmt.Println("reconnecting.....")
+		time.Sleep(3 * time.Second)
+	}
+}
+
 func ReciveFunc(so *websocket.Conn) {
 
 	for {
 		//开始不停的读取数据
 		_, buf, e := so.ReadMessage()
 		if e != nil {
-			for {
-				so = Connect()
-				if so == nil {
-					//time.Sleep(10 * time.Second)
-					fmt.Println("reconnecting.....")
-					continue
-				}
-				break
-			}
+			so = reconnectTradeSocket()
+			continue
 		}
 		greader, err := gzip.NewReader(bytes.NewReader(buf))
 		if err != nil {
@@ -204,6 +209,15 @@ func GetMbp(mp *config.MConfig, pair string) {
 	coininfo, _ := CoinInfoMap[pair]
 	ticks := mp.GetValue("tick").ToConfig()
 	//fmt.Println(ticks.ConfigMap)
+	baseClosePrice := 0.0
+	hasBaseClosePrice := false
+	if coininfo["isnative"] == "0" {
+		lastpriceInfo := config.GlobalMongo.GetOne("lastkline", bson.M{"pair": pair, "period": "1day"}, nil)
+		if v, ok := lastpriceInfo["close"]; ok {
+			baseClosePrice = v.(float64)
+			hasBaseClosePrice = true
+		}
+	}
 	bids, ok := ticks.GetValue("bids").Value.([]interface{})
 	ntime := utils.GetNow()
 	if ok {
@@ -217,9 +231,8 @@ func GetMbp(mp *config.MConfig, pair string) {
 			}
 			insertData := db.DB_PARAMS{}
 			if coininfo["isnative"] == "0" {
-				lastpriceInfo := config.GlobalMongo.GetOne("lastkline", bson.M{"pair": pair, "period": "1day"}, nil)
-				if v, ok := lastpriceInfo["close"]; ok {
-					insertData["amouut"] = v.(float64) + float64(float64(1+rand.Intn(9))/float64(100))*v.(float64)
+				if hasBaseClosePrice {
+					insertData["amouut"] = baseClosePrice + float64(float64(1+rand.Intn(9))/float64(100))*baseClosePrice
 					insertData["amouut"] = utils.FormatFloatA(insertData["amouut"].(float64), utils.GetInt(coininfo["dnum"]))
 				}
 			} else {
@@ -258,9 +271,8 @@ func GetMbp(mp *config.MConfig, pair string) {
 			}
 			insertData := db.DB_PARAMS{}
 			if coininfo["isnative"] == "0" {
-				lastpriceInfo := config.GlobalMongo.GetOne("lastkline", bson.M{"pair": pair, "period": "1day"}, nil)
-				if v, ok := lastpriceInfo["close"]; ok {
-					insertData["amouut"] = v.(float64) + float64(float64(1+rand.Intn(9))/float64(100))*v.(float64)
+				if hasBaseClosePrice {
+					insertData["amouut"] = baseClosePrice + float64(float64(1+rand.Intn(9))/float64(100))*baseClosePrice
 					insertData["amouut"] = utils.FormatFloatA(insertData["amouut"].(float64), utils.GetInt(coininfo["dnum"]))
 				}
 			} else {
@@ -294,15 +306,23 @@ func GetTradeDetail(mp *config.MConfig, pair string) {
 	coininfo := CoinInfoMap[pair]
 	ticks := mp.GetValue("tick").ToConfig()
 	datas := ticks.GetValue("data").Value.([]interface{})
+	baseClosePrice := 0.0
+	hasBaseClosePrice := false
+	if coininfo["isnative"] == "0" {
+		lastpriceInfo := config.GlobalMongo.GetOne("lastkline", bson.M{"pair": pair, "period": "1day"}, nil)
+		if v, ok := lastpriceInfo["close"]; ok {
+			baseClosePrice = v.(float64)
+			hasBaseClosePrice = true
+		}
+	}
 	//fmt.Println(datas)
 	for _, vv := range datas {
 		insertData := vv.(map[string]interface{})
 		//fmt.Println(insertData)
 		if _, ok := insertData["price"]; ok {
 			if coininfo["isnative"] == "0" {
-				lastpriceInfo := config.GlobalMongo.GetOne("lastkline", bson.M{"pair": pair, "period": "1day"}, nil)
-				if v, ok := lastpriceInfo["close"]; ok {
-					insertData["amouut"] = v.(float64) + float64(float64(1+rand.Intn(9))/float64(100))*v.(float64)
+				if hasBaseClosePrice {
+					insertData["amouut"] = baseClosePrice + float64(float64(1+rand.Intn(9))/float64(100))*baseClosePrice
 					insertData["amouut"] = utils.FormatFloatA(insertData["amouut"].(float64), utils.GetInt(coininfo["dnum"]))
 					insertData["price"] = insertData["amouut"]
 				}
