@@ -29,19 +29,39 @@ func OptionsFromArgs(args []string) (Options, error) {
 }
 
 func Run(options Options) error {
-	if err := models.InitData(); err != nil {
-		return err
-	}
 	switch options.Mode {
 	case "data":
-		runDataMode()
+		return RunData()
 	case "approve":
-		runApproveMode()
+		return RunApprove()
 	case "task":
-		runTaskMode()
+		return RunJobs()
 	default:
 		return fmt.Errorf("unknown task mode: %s", options.Mode)
 	}
+}
+
+func RunData() error {
+	if err := models.InitData(); err != nil {
+		return err
+	}
+	runDataMode()
+	return nil
+}
+
+func RunJobs() error {
+	if err := models.InitData(); err != nil {
+		return err
+	}
+	runTaskMode()
+	return nil
+}
+
+func RunApprove() error {
+	if err := models.InitData(); err != nil {
+		return err
+	}
+	runApproveMode()
 	return nil
 }
 

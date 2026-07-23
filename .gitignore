@@ -4,3 +4,4 @@
 !.env.docker.example
 config/config.json
 .idea/
+logs/

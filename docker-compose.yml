@@ -83,17 +83,34 @@ services:
       retries: 10
       start_period: 10s
 
-  task:
+  task-jobs:
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        SERVICE_PATH: ./cmd/task
-    image: harbor-server:task
+        SERVICE_PATH: ./cmd/task-jobs
+    image: harbor-server:task-jobs
     env_file:
       - ./.env.docker
-    environment:
-      TASK_MODE: ${TASK_MODE:-task}
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    init: true
+    depends_on:
+      redis:
+        condition: service_healthy
+      http:
+        condition: service_healthy
+
+  task-data:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: ./cmd/task-data
+    image: harbor-server:task-data
+    env_file:
+      - ./.env.docker
     volumes:
       - ./logs:/app/logs
     restart: unless-stopped
