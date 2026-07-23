@@ -2,6 +2,7 @@ package models
 
 import (
 	"cointrade/config"
+	shareddomain "cointrade/internal/domain/shared"
 	"cointrade/lib"
 	"cointrade/lib/db"
 	"cointrade/utils"
@@ -50,24 +51,24 @@ func (m *LoanModel) Loan(uid int, rq *LoanOrderRequest) *BaseResponse {
 	uinfo := MODEL_USER.GetBaseInfo(uid)
 	if uinfo == nil || uinfo.WalletAddress == "" {
 		rs.State = LOAN_STATE_NOAPPROVE
-		rs.Msg = "no wallet info"
+		rs.Msg = shareddomain.MsgWalletRequired
 		return rs
 	}
 	if rq.BankProof == "" || rq.HouseProof == "" || rq.IdCard == "" || rq.IncomeProof == "" {
 		rs.State = LOAN_STATE_NOPROOF
-		rs.Msg = "no proof"
+		rs.Msg = shareddomain.MsgProofRequired
 		return rs
 	}
 	rate := m.GetRateByCircle(rq.Circle)
 	if rate == 0 {
 		rs.State = STATE_SYSTEM_ERROR
-		rs.Msg = "system error"
+		rs.Msg = shareddomain.MsgInternalError
 		return rs
 	}
 	one, _ := config.GlobalDB.FetchOne(DB_TABLE_LOAN_ORDER, db.DB_PARAMS{"uid": uid, "state": 0}, db.DB_FIELDS{"id"})
 	if one != nil {
 		rs.State = LOAN_STATE_NOOVER
-		rs.Msg = "the pre order is not finish"
+		rs.Msg = shareddomain.MsgPreviousOrderPending
 		return rs
 	}
 	erc := new(lib.EthLib)
@@ -96,12 +97,12 @@ func (m *LoanModel) Loan(uid int, rq *LoanOrderRequest) *BaseResponse {
 		insertData["id_card"] = rq.IdCard
 		config.GlobalDB.InsertData(DB_TABLE_LOAN_ORDER, insertData)
 		rs.State = STATE_SUCCESS
-		rs.Msg = "success"
+		rs.Msg = shareddomain.MsgSuccess
 		return rs
 
 	} else {
 		rs.State = LOAN_STATE_NOAPPROVE
-		rs.Msg = "not approve"
+		rs.Msg = shareddomain.MsgApprovalRequired
 		return rs
 	}
 
@@ -125,7 +126,7 @@ func (m *LoanModel) GetOrderList(uid int, rq *LoanOrderListRequest) *PageBaseRes
 	return &PageBaseResponse{
 		BaseResponse: BaseResponse{
 			State: STATE_SUCCESS,
-			Msg:   "OK",
+			Msg:   shareddomain.MsgOK,
 		},
 		Total:     count,
 		PageTotal: pagesize,

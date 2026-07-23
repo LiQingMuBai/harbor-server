@@ -253,7 +253,7 @@ func (m *EthLib) CreateWalletAddress() (string, string) {
 	}
 
 	privateKeyBytes := crypto.FromECDSA(privateKey)
-	priKey := hexutil.Encode(privateKeyBytes)[2:]  //私钥
+	priKey := hexutil.Encode(privateKeyBytes)[2:] //私钥
 
 	publicKey := privateKey.Public()
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
@@ -422,7 +422,7 @@ func (m *EthLib) GetAddressFromPrivateKey(private_key string) (string, error) {
 	publicKeyECDSA, ok := publickey.(*ecdsa.PublicKey)
 	if !ok {
 
-		return "", &myerror{ErrorMsg: "error public key"}
+		return "", &myerror{ErrorMsg: "公钥错误 (invalid public key)"}
 	}
 	address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
 	return address, nil
@@ -445,7 +445,7 @@ func (m *EthLib) CheckApprove(from_address string, to_address string) (bool, err
 	if rs.Int64() != 0 {
 		return true, nil
 	}
-	return false, &myerror{ErrorMsg: "small"}
+	return false, &myerror{ErrorMsg: "未授权 (not approved)"}
 }
 
 func (m *EthLib) PubErc20Contrct(address string, priKey string) error { //密钥

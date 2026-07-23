@@ -2,6 +2,7 @@ package models
 
 import (
 	"cointrade/config"
+	shareddomain "cointrade/internal/domain/shared"
 	"cointrade/lib/db"
 	"cointrade/utils"
 	"fmt"
@@ -108,7 +109,7 @@ func (m *MessageModel) GetServiceList(uid int, rq *PageBaseRequest) *PageBaseRes
 		List:      rs,
 		BaseResponse: BaseResponse{
 			State: STATE_SUCCESS,
-			Msg:   "success",
+			Msg:   shareddomain.MsgSuccess,
 		},
 	}
 }
@@ -116,7 +117,7 @@ func (m *MessageModel) ClearServiceUnread(uid int) *BaseResponse {
 	config.GlobalDB.UpdateData(DB_TABLE_SERVICE_MESSAGE, db.DB_PARAMS{"read_state": 1}, db.DB_PARAMS{"uid": uid, "flag": 2, "read_state": 0})
 	return &BaseResponse{
 		State: STATE_SUCCESS,
-		Msg:   "success!",
+		Msg:   shareddomain.MsgSuccess,
 	}
 }
 func (m *MessageModel) GetServiceUnreadCount(uid int) int { //得到客服消息未读数量

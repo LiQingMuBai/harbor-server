@@ -2,6 +2,7 @@ package models
 
 import (
 	"cointrade/config"
+	shareddomain "cointrade/internal/domain/shared"
 	"cointrade/lib/db"
 	"cointrade/utils"
 	"fmt"
@@ -63,7 +64,7 @@ func (m *UserModel) LoginByAddress(address string, ip string) *LoginResponse { /
 	}
 	sid := m.MakeSessionId(uid)
 	return &LoginResponse{
-		BaseResponse: BaseResponse{State: STATE_SUCCESS, Msg: ""},
+		BaseResponse: BaseResponse{State: STATE_SUCCESS, Msg: shareddomain.MsgSuccess},
 		SessionId:    sid,
 		UserInfo:     m.AfterLogin(uid, ip, sid),
 	}

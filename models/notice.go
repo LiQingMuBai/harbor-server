@@ -2,6 +2,7 @@ package models
 
 import (
 	"cointrade/config"
+	shareddomain "cointrade/internal/domain/shared"
 	"cointrade/lib/db"
 	"fmt"
 	"math"
@@ -43,7 +44,7 @@ func (m *NoticeModel) GetList(rq *NoticeRequest) *PageBaseResponse { //获取公
 	rs.PageTotal = pagesize
 	rs.Total = count
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }
 

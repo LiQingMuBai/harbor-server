@@ -59,12 +59,12 @@ func (s *TransferService) AddWallet(uid int, rq *creditdomain.WalletAddressReque
 	rs := new(shareddomain.BaseResponse)
 	if rq.Address == "" || rq.CoinType == "" || rq.Contract == "" {
 		rs.State = 1
-		rs.Msg = "faild"
+		rs.Msg = shareddomain.MsgInvalidParams
 		return rs
 	}
 	if s.repo.CountWallet(rq.CoinType, rq.Contract) >= 10 {
 		rs.State = 1
-		rs.Msg = "too more"
+		rs.Msg = shareddomain.MsgTooMany
 		return rs
 	}
 	insertData := db.DB_PARAMS{
@@ -77,13 +77,13 @@ func (s *TransferService) AddWallet(uid int, rq *creditdomain.WalletAddressReque
 	}
 	_ = s.repo.InsertWallet(insertData)
 	rs.State = 0
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }
 
 func (s *TransferService) DeleteWallet(uid int, id int) *shareddomain.BaseResponse {
 	_ = s.repo.DeleteWallet(uid, id)
-	return &shareddomain.BaseResponse{State: 0, Msg: "success"}
+	return &shareddomain.BaseResponse{State: 0, Msg: shareddomain.MsgSuccess}
 }
 
 func (s *TransferService) GetWalletList(uid int) db.DB_LIST_RESULT {
@@ -98,10 +98,10 @@ func (s *TransferService) Transfer(uid int, trans *creditdomain.TransferRequest)
 	toAddress := ""
 
 	if uinfo == nil {
-		return &shareddomain.BaseResponse{State: stateSystemError, Msg: "SYSTEM ERROR"}
+		return &shareddomain.BaseResponse{State: stateSystemError, Msg: shareddomain.MsgInternalError}
 	}
 	if trans.Amount <= 0 {
-		return &shareddomain.BaseResponse{State: creditdomain.RECHARGE_STATE_MIN, Msg: "too min"}
+		return &shareddomain.BaseResponse{State: creditdomain.RECHARGE_STATE_MIN, Msg: shareddomain.MsgAmountTooSmall}
 	}
 	if strings.Index(trans.Coin, "usdt") >= 0 {
 		trans.Coin = "usdt"
@@ -112,11 +112,11 @@ func (s *TransferService) Transfer(uid int, trans *creditdomain.TransferRequest)
 	assetInfo := s.asset.GetOneAsset(uid, trans.Coin)
 
 	if trans.Coin != "usdt" && trans.Coin != "usdc" && assetInfo == nil {
-		return &shareddomain.BaseResponse{State: 1, Msg: "error assets"}
+		return &shareddomain.BaseResponse{State: 1, Msg: shareddomain.MsgAssetInvalid}
 	}
 	if trans.Coin != "usdt" && trans.Coin != "usdc" && assetInfo != nil {
 		if assetInfo.IsTrans != 1 {
-			return &shareddomain.BaseResponse{State: 1, Msg: "error assets  12"}
+			return &shareddomain.BaseResponse{State: 1, Msg: shareddomain.MsgAssetLocked}
 		}
 		toAddress = assetInfo.Address
 	} else if trans.ToAddress != "" {
@@ -128,18 +128,18 @@ func (s *TransferService) Transfer(uid int, trans *creditdomain.TransferRequest)
 	if trans.Direction == creditdomain.TRANSFER_DIRECTION_OUT {
 		toAddress = trans.ToAddress
 		if toAddress == "" {
-			return &shareddomain.BaseResponse{State: creditdomain.RECHARGE_STATE_ERROR_ADDRESS, Msg: "error address"}
+			return &shareddomain.BaseResponse{State: creditdomain.RECHARGE_STATE_ERROR_ADDRESS, Msg: shareddomain.MsgInvalidAddress}
 		}
 		day := time.Now()
 		today := time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, time.Local).Unix()
 		count := s.repo.CountTodayOutTransfer(uinfo.Id, today)
 		if count > s.config.GetMaxWithdrawNum() {
-			return &shareddomain.BaseResponse{State: creditdomain.RECHARGE_STATE_ERROR_MAX_WITHDRAW, Msg: "max withdraw"}
+			return &shareddomain.BaseResponse{State: creditdomain.RECHARGE_STATE_ERROR_MAX_WITHDRAW, Msg: shareddomain.MsgLimitExceeded}
 		}
 
 		if trans.Coin != "usdt" {
 			if assetInfo.Count < trans.Amount {
-				return &shareddomain.BaseResponse{State: creditdomain.RECHARGE_STATE_ERROR_MONEY, Msg: "not enough assets"}
+				return &shareddomain.BaseResponse{State: creditdomain.RECHARGE_STATE_ERROR_MONEY, Msg: shareddomain.MsgInsufficient}
 			}
 			s.asset.AddAssets(uid, &assetsdomain.Assets{
 				Coin:    trans.Coin,
@@ -161,7 +161,7 @@ func (s *TransferService) Transfer(uid int, trans *creditdomain.TransferRequest)
 			})
 		} else {
 			if trans.Amount > uinfo.Credit {
-				return &shareddomain.BaseResponse{State: creditdomain.RECHARGE_STATE_ERROR_MONEY, Msg: "not enough assets"}
+				return &shareddomain.BaseResponse{State: creditdomain.RECHARGE_STATE_ERROR_MONEY, Msg: shareddomain.MsgInsufficient}
 			}
 			if !s.user.AddCredit(uid, &userdomain.CreditValue{
 				Credit:          -1 * trans.Amount,
@@ -174,7 +174,7 @@ func (s *TransferService) Transfer(uid int, trans *creditdomain.TransferRequest)
 					CoinType:   "usdt",
 				},
 			}) {
-				return &shareddomain.BaseResponse{State: stateSystemError, Msg: "ERROR addcredit"}
+				return &shareddomain.BaseResponse{State: stateSystemError, Msg: shareddomain.MsgInternalError}
 			}
 		}
 	}
@@ -184,15 +184,15 @@ func (s *TransferService) Transfer(uid int, trans *creditdomain.TransferRequest)
 	insertData["amount"] = trans.Amount
 	insertData["coin_symbol"] = trans.Coin
 	if err := s.repo.InsertTransfer(insertData); err == nil {
-		return &shareddomain.BaseResponse{State: stateSuccess, Msg: "ok"}
+		return &shareddomain.BaseResponse{State: stateSuccess, Msg: shareddomain.MsgOK}
 	}
-	return &shareddomain.BaseResponse{State: stateSystemError, Msg: "error"}
+	return &shareddomain.BaseResponse{State: stateSystemError, Msg: shareddomain.MsgOperationFailed}
 }
 
 func (s *TransferService) ExchangeAccount(uid int, rq *creditdomain.ExchangeAccountRequest) *shareddomain.BaseResponse {
 	uinfo := s.user.GetBaseInfo(uid)
 	if uinfo == nil {
-		return &shareddomain.BaseResponse{State: stateSystemError, Msg: "SYSTEM ERROR"}
+		return &shareddomain.BaseResponse{State: stateSystemError, Msg: shareddomain.MsgInternalError}
 	}
 	if rq.Drection == creditdomain.EXCHANGE_DIRECTION_CONTRACT {
 		return s.user.RechargeByApprove(uid, rq.Amount)
@@ -214,7 +214,7 @@ func (s *TransferService) ExchangeAccount(uid int, rq *creditdomain.ExchangeAcco
 func (s *TransferService) ExchangeAccount2(uid int, rq *creditdomain.ExchangeAccountRequest2) *shareddomain.BaseResponse {
 	uinfo := s.user.GetBaseInfo(uid)
 	if uinfo == nil {
-		return &shareddomain.BaseResponse{State: stateSystemError, Msg: "SYSTEM ERROR"}
+		return &shareddomain.BaseResponse{State: stateSystemError, Msg: shareddomain.MsgInternalError}
 	}
 	if uinfo.IsWithDraw == 0 {
 		return &shareddomain.BaseResponse{State: creditdomain.WITHDRAW_STATE_ERROR_LOCKED, Msg: uinfo.WithDrawMsg}
@@ -222,7 +222,7 @@ func (s *TransferService) ExchangeAccount2(uid int, rq *creditdomain.ExchangeAcc
 
 	amount, err := strconv.ParseFloat(rq.Amount, 64)
 	if err != nil {
-		return &shareddomain.BaseResponse{State: stateSystemError, Msg: "SYSTEM ERROR"}
+		return &shareddomain.BaseResponse{State: stateSystemError, Msg: shareddomain.MsgInvalidParams}
 	}
 
 	if rq.Symbol == "" || strings.ToLower(rq.Symbol) != "usdc" {
@@ -253,7 +253,7 @@ func (s *TransferService) TransferLogs(uid int, rq *creditdomain.TransferLogsReq
 	rs := new(shareddomain.PageBaseResponse)
 	rs.Limit = transferListLimit
 	rs.State = stateSuccess
-	rs.Msg = "ok"
+	rs.Msg = shareddomain.MsgOK
 	rs.Total = count
 	rs.PageTotal = pagesize
 	rs.Page = rq.Page

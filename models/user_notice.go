@@ -2,6 +2,7 @@ package models
 
 import (
 	"cointrade/config"
+	shareddomain "cointrade/internal/domain/shared"
 	"cointrade/lib/db"
 	"fmt"
 	"math"
@@ -29,7 +30,7 @@ func (m *UserModel) GetNoticeList(uid int, rq *PageBaseRequest) *PageBaseRespons
 	list, _ := config.GlobalDB.FetchRows(DB_TABLE_USER_NOTICE, db.DB_PARAMS{"_": fmt.Sprintf("(uid = %d OR uid = 0)", uid)}, db.DB_FIELDS{}, "order by createtime desc", fmt.Sprintf("limit %d,%d", (rq.Page-1)*rq.Limit, rq.Limit))
 	rs := new(PageBaseResponse)
 	rs.State = STATE_SUCCESS
-	rs.Msg = "ok"
+	rs.Msg = shareddomain.MsgOK
 	rs.Limit = rq.Limit
 	rs.Page = rq.Page
 	rs.List = list
@@ -39,10 +40,10 @@ func (m *UserModel) GetNoticeList(uid int, rq *PageBaseRequest) *PageBaseRespons
 
 func (m *UserModel) ReadNotice(uid int, nid int) *BaseResponse {
 	config.GlobalDB.UpdateData(DB_TABLE_USER_NOTICE, db.DB_PARAMS{"is_read": 1}, db.DB_PARAMS{"uid": uid, "id": nid})
-	return &BaseResponse{State: STATE_SUCCESS, Msg: "ok"}
+	return &BaseResponse{State: STATE_SUCCESS, Msg: shareddomain.MsgOK}
 }
 
 func (m *UserModel) ClearUnreadNotice(uid int) *BaseResponse {
 	config.GlobalDB.UpdateData(DB_TABLE_USER_NOTICE, db.DB_PARAMS{"is_read": 1}, db.DB_PARAMS{"uid": uid})
-	return &BaseResponse{State: STATE_SUCCESS, Msg: "ok"}
+	return &BaseResponse{State: STATE_SUCCESS, Msg: shareddomain.MsgOK}
 }

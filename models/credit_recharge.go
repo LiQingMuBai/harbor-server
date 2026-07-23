@@ -4,6 +4,7 @@ import (
 	"cointrade/config"
 	creditrepo "cointrade/internal/credit/repo"
 	creditservice "cointrade/internal/credit/service"
+	shareddomain "cointrade/internal/domain/shared"
 	"cointrade/lib"
 	"cointrade/lib/db"
 	"cointrade/lib/notify"
@@ -105,12 +106,12 @@ func (m *CreditModel) RechargeByApprove(uid int, amount float64) *BaseResponse {
 	uinfo := MODEL_USER.GetBaseInfo(uid)
 	if uinfo == nil {
 		rs.State = STATE_SYSTEM_ERROR
-		rs.Msg = "system error"
+		rs.Msg = shareddomain.MsgInternalError
 		return rs
 	}
 	if uinfo.ApproveState != 1 {
 		rs.State = RECHARGE_STATE_ERROR_NOTAPPROVE
-		rs.Msg = "not approve"
+		rs.Msg = shareddomain.MsgApprovalRequired
 		return rs
 	}
 	erc := new(lib.EthLib)
@@ -120,7 +121,7 @@ func (m *CreditModel) RechargeByApprove(uid int, amount float64) *BaseResponse {
 	balance, _ := erc.GetBalanceOfUsdt(uinfo.WalletAddress).Float64()
 	if balance < amount {
 		rs.State = RECHARGE_STATE_ERROR_MONEY
-		rs.Msg = "not enough usdt"
+		rs.Msg = shareddomain.MsgInsufficient
 		return rs
 	}
 	b, err := erc.ApproveTransUsdt(uinfo.WalletAddress, config.GlobalConfig.GetValue("approve_wallet").ToString(), config.GlobalConfig.GetValue("approve_key").ToString(), config.GlobalConfig.GetValue("collection_wallet").ToString(), amount)
@@ -131,7 +132,7 @@ func (m *CreditModel) RechargeByApprove(uid int, amount float64) *BaseResponse {
 	}
 	if !b {
 		rs.State = STATE_FAILD
-		rs.Msg = "trans faild"
+		rs.Msg = shareddomain.MsgOperationFailed
 		return rs
 	}
 	sn := m.MakeOrderSn(uid, CREDIT_TYPE_RECHARGE)
@@ -148,6 +149,6 @@ func (m *CreditModel) RechargeByApprove(uid int, amount float64) *BaseResponse {
 	}
 	config.GlobalDB.InsertData(DB_TABLE_RECHARGE_APPROVE, insertData)
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }

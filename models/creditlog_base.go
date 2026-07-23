@@ -2,6 +2,7 @@ package models
 
 import (
 	"cointrade/config"
+	shareddomain "cointrade/internal/domain/shared"
 	"cointrade/lib/db"
 	"fmt"
 	"math"
@@ -44,7 +45,7 @@ func (m *CreditLogModel) GetList(uid int, rq *CoinLogRequest) *PageBaseResponse 
 	list, _ := config.GlobalDB.FetchRows(DB_TABLE_CREDIT_LOG, condition, db.DB_FIELDS{}, "order by id desc", limitstr)
 	rs := new(PageBaseResponse)
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	rs.Limit = rq.Limit
 	rs.Page = rq.Page
 	rs.PageTotal = pagesize

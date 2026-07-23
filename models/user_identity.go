@@ -2,6 +2,7 @@ package models
 
 import (
 	"cointrade/config"
+	shareddomain "cointrade/internal/domain/shared"
 	"cointrade/lib/db"
 	"cointrade/lib/notify"
 	"cointrade/utils"
@@ -12,12 +13,12 @@ func (m *UserModel) AuthLv1(uid int, authinfo *AuthLv1Request) *BaseResponse {
 	uinfo := m.GetBaseInfo(uid)
 	if uinfo.AuthLv >= 1 {
 		rs.State = STATE_FAILD
-		rs.Msg = "faild"
+		rs.Msg = shareddomain.MsgFailed
 		return rs
 	}
 	if authinfo.CardBack == "" || authinfo.CardFront == "" || authinfo.Phone == "" || authinfo.CardType == 0 {
 		rs.State = STATE_FAILD
-		rs.Msg = "faild"
+		rs.Msg = shareddomain.MsgInvalidParams
 		return rs
 	}
 
@@ -40,7 +41,7 @@ func (m *UserModel) AuthLv1(uid int, authinfo *AuthLv1Request) *BaseResponse {
 			config.GlobalDB.UpdateData(DB_TABLE_USERAUTH, insertData, db.DB_PARAMS{"uid": uid})
 		} else {
 			rs.State = STATE_FAILD
-			rs.Msg = "faild"
+			rs.Msg = shareddomain.MsgFailed
 			return rs
 		}
 	} else {
@@ -48,7 +49,7 @@ func (m *UserModel) AuthLv1(uid int, authinfo *AuthLv1Request) *BaseResponse {
 	}
 	notify.NOTIFY.AddNotify(&notify.NotifyItem{Type: 3, Num: 1})
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success!"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }
 
@@ -57,12 +58,12 @@ func (m *UserModel) AuthLv2(uid int, rq *AuthLv2Request) *BaseResponse {
 	uinfo := m.GetBaseInfo(uid)
 	if uinfo.AuthLv >= 2 || uinfo.AuthLv == 0 {
 		rs.State = STATE_FAILD
-		rs.Msg = "faild1"
+		rs.Msg = shareddomain.MsgFailed
 		return rs
 	}
 	if rq.FarmilyName == "" || rq.WalletAddress == "" || rq.Address == "" {
 		rs.State = STATE_FAILD
-		rs.Msg = "faild2"
+		rs.Msg = shareddomain.MsgInvalidParams
 		return rs
 	}
 	data := db.DB_PARAMS{
@@ -85,7 +86,7 @@ func (m *UserModel) AuthLv2(uid int, rq *AuthLv2Request) *BaseResponse {
 			config.GlobalDB.UpdateData(DB_TABLE_USERAUTH_LV2, data, db.DB_PARAMS{"id": one["id"].Value})
 		} else {
 			rs.State = STATE_FAILD
-			rs.Msg = "faild3"
+			rs.Msg = shareddomain.MsgFailed
 			return rs
 		}
 	} else {
@@ -93,7 +94,7 @@ func (m *UserModel) AuthLv2(uid int, rq *AuthLv2Request) *BaseResponse {
 	}
 	notify.NOTIFY.AddNotify(&notify.NotifyItem{Type: 4, Num: 1})
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success!"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }
 
@@ -107,22 +108,22 @@ func (m *UserModel) ChangeCashPassword(uid int, rq *SetCashPasswordRequest) *Bas
 	rs := new(BaseResponse)
 	if rq.Password == "" {
 		rs.State = 1
-		rs.Msg = "the password is volid"
+		rs.Msg = shareddomain.MsgPasswordRequired
 		return rs
 	}
 	if len(rq.Password) < 6 || len(rq.Password) > 20 {
 		rs.State = 1
-		rs.Msg = "the password length is must between 6-20"
+		rs.Msg = shareddomain.MsgPasswordLength
 		return rs
 	}
 	if rq.Password != rq.RePassword {
 		rs.State = 1
-		rs.Msg = "confirm password error"
+		rs.Msg = shareddomain.MsgPasswordInvalid
 		return rs
 	}
 	m.Update(uid, db.DB_PARAMS{"cash_password": rq.Password})
 	rs.State = 0
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }
 
@@ -131,27 +132,27 @@ func (m *UserModel) UpdateCashPassword(uid int, rq *UpdateCashPasswordRequest) *
 	rs := new(BaseResponse)
 	if uinfo == nil {
 		rs.State = STATE_FAILD
-		rs.Msg = "user is not exists"
+		rs.Msg = shareddomain.MsgUserNotFound
 		return rs
 	}
 	if rq.O_Password != uinfo.CashPassword {
 		rs.State = CHANGE_PASS_STATE_OLDERROR
-		rs.Msg = "cash password is error"
+		rs.Msg = shareddomain.MsgPasswordInvalid
 		return rs
 	}
 	if len(rq.N_Password) < 6 || len(rq.N_Password) > 20 {
 		rs.State = REGISTER_STATE_ERRORPASSWORD
-		rs.Msg = "password length is must between 6-20"
+		rs.Msg = shareddomain.MsgPasswordLength
 		return rs
 	}
 	if rq.N_Password != rq.R_Password {
 		rs.State = REGISTER_STATE_ERRORPASSWORD
-		rs.Msg = "confirm password is error"
+		rs.Msg = shareddomain.MsgPasswordInvalid
 		return rs
 	}
 	m.Update(uid, db.DB_PARAMS{"cash_password": rq.N_Password})
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }
 
@@ -160,24 +161,24 @@ func (m *UserModel) BindPhone(uid int, phone string, code string) *BaseResponse 
 	uinfo := m.GetBaseInfo(uid)
 	if uinfo.Phone != "" {
 		rs.State = BIND_PHONE_STATE_BINDED
-		rs.Msg = "binded"
+		rs.Msg = shareddomain.MsgAlreadyBound
 		return rs
 	}
 	one, _ := config.GlobalDB.FetchOne(DB_TABLE_USER, db.DB_PARAMS{"phone": phone}, db.DB_FIELDS{"id"})
 	if one != nil {
 		rs.State = BIND_PHONE_STATE_BINDED
-		rs.Msg = "phone num binded"
+		rs.Msg = shareddomain.MsgAlreadyBound
 		return rs
 	}
 	vCode := MODEL_CODE.GetBindSmsCode(uid, phone)
 	if vCode != code {
 		rs.State = BIND_PHONE_STATE_ERRORCODE
-		rs.Msg = "error code"
+		rs.Msg = shareddomain.MsgVerifyCodeInvalid
 		return rs
 	}
 	m.Update(uid, db.DB_PARAMS{"phone": phone})
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }
 
@@ -186,23 +187,23 @@ func (m *UserModel) BindEmail(uid int, email string, code string) *BaseResponse 
 	uinfo := m.GetBaseInfo(uid)
 	if uinfo.Email != "" && uinfo.Email != "0" {
 		rs.State = BIND_PHONE_STATE_BINDED
-		rs.Msg = "binded"
+		rs.Msg = shareddomain.MsgAlreadyBound
 		return rs
 	}
 	one, _ := config.GlobalDB.FetchOne(DB_TABLE_USER, db.DB_PARAMS{"email": email}, db.DB_FIELDS{"id"})
 	if one != nil {
 		rs.State = BIND_PHONE_STATE_BINDED
-		rs.Msg = "phone num binded"
+		rs.Msg = shareddomain.MsgAlreadyBound
 		return rs
 	}
 	vCode := MODEL_CODE.GetEmailCodeBind(email)
 	if vCode != code {
 		rs.State = BIND_PHONE_STATE_ERRORCODE
-		rs.Msg = "error code"
+		rs.Msg = shareddomain.MsgVerifyCodeInvalid
 		return rs
 	}
 	m.Update(uid, db.DB_PARAMS{"email": email})
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }

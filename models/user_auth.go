@@ -2,6 +2,7 @@ package models
 
 import (
 	"cointrade/config"
+	shareddomain "cointrade/internal/domain/shared"
 	"cointrade/lib/db"
 	"cointrade/lib/google"
 	"cointrade/utils"
@@ -33,44 +34,44 @@ func (m *UserModel) Register(rq *RegisterRequest) *BaseResponse { //注册
 	rs := new(BaseResponse)
 	if rq == nil {
 		rs.State = STATE_SYSTEM_ERROR
-		rs.Msg = "system error"
+		rs.Msg = shareddomain.MsgInternalError
 		return rs
 	}
 	if rq.Email != "" {
 		rq.Email = strings.TrimSpace(rq.Email)
 		if !utils.CheckEmail(rq.Email) {
 			rs.State = REGISTER_STATE_ERROREMAIL
-			rs.Msg = "error email"
+			rs.Msg = shareddomain.MsgEmailInvalid
 			return rs
 		}
 		one, _ := config.GlobalDB.FetchOne(DB_TABLE_USER, db.DB_PARAMS{"email": rq.Email}, db.DB_FIELDS{"id"}, "limit 0,1")
 		if one != nil {
 			rs.State = REGISTER_STATE_EMAILEXISTS
-			rs.Msg = "email is exists"
+			rs.Msg = shareddomain.MsgAlreadyRegistered
 			return rs
 		}
 	} else {
 		rq.UserName = strings.TrimSpace(rq.UserName)
 		if len(rq.UserName) < 4 || len(rq.UserName) > 20 || !utils.CheckUserName(rq.UserName) {
 			rs.State = REGISTER_STATE_ERROREMAIL
-			rs.Msg = "error username"
+			rs.Msg = shareddomain.MsgUsernameInvalid
 		}
 		one, _ := config.GlobalDB.FetchOne(DB_TABLE_USER, db.DB_PARAMS{"username": rq.UserName}, db.DB_FIELDS{"id"}, "limit 0,1")
 		if one != nil {
 			rs.State = REGISTER_STATE_EMAILEXISTS
-			rs.Msg = "email is exists"
+			rs.Msg = shareddomain.MsgAlreadyRegistered
 			return rs
 		}
 	}
 
 	if len(rq.PassWord) < 6 || len(rq.PassWord) > 20 {
 		rs.State = REGISTER_STATE_ERRORPASSWORD
-		rs.Msg = "the password length is 6-20"
+		rs.Msg = shareddomain.MsgPasswordLength
 		return rs
 	}
 	if rq.PassWord != rq.RePassWord {
 		rs.State = REGISTER_STATE_NOREPASSWORD
-		rs.Msg = "the confirm password is error"
+		rs.Msg = shareddomain.MsgPasswordInvalid
 		return rs
 	}
 
@@ -99,13 +100,13 @@ func (m *UserModel) Register(rq *RegisterRequest) *BaseResponse { //注册
 	if rq.InviteCode != "" {
 		puid := m.GetInviteUser(rq.InviteCode)
 		if puid == 0 {
-			rs.Msg = "the invite user is not exists"
+			rs.Msg = shareddomain.MsgInviteUserInvalid
 			rs.State = REGISTER_STATE_INVITEERROR
 			return rs
 		}
 		puinfo := m.GetBaseInfo(puid)
 		if puinfo == nil {
-			rs.Msg = "the invite user is not exists"
+			rs.Msg = shareddomain.MsgInviteUserInvalid
 			rs.State = REGISTER_STATE_INVITEERROR
 			return rs
 		}
@@ -152,7 +153,7 @@ func (m *UserModel) Register(rq *RegisterRequest) *BaseResponse { //注册
 	config.GlobalRedis.PushQueue(QUEUE_USER_REGISTER, registerQueue)
 
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success!"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }
 
@@ -211,7 +212,7 @@ func (m *UserModel) Login(rq *LoginRequest) *LoginResponse {
 	one, _ := config.GlobalDB.FetchOne(DB_TABLE_USER, db.DB_PARAMS{"username": rq.Username, "password": mp}, db.DB_FIELDS{"id", "google_serect", "status", "withdraw_msg"})
 	if one == nil {
 		rs.State = 1
-		rs.Msg = "faild"
+		rs.Msg = shareddomain.MsgFailed
 		rs.UserInfo = nil
 		return rs
 	}
@@ -224,10 +225,10 @@ func (m *UserModel) Login(rq *LoginRequest) *LoginResponse {
 
 	uid := one["id"].ToInt()
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success!"
+	rs.Msg = shareddomain.MsgSuccess
 	if _, ok := one["google_serect"]; ok && one["google_serect"].ToString() != "" {
 		rs.State = LOGIN_STATE_GOOGLE_AUTH
-		rs.Msg = "need google auth"
+		rs.Msg = shareddomain.MsgGoogleAuthRequired
 		rs.UserInfo = m.GetBaseInfo(uid)
 		rs.UserInfo.Memo = ""
 		return rs
@@ -242,7 +243,7 @@ func (m *UserModel) GoogleAuthLogin(uid int, verdifyCode string, ip string) *Log
 	one, _ := config.GlobalDB.FetchOne(DB_TABLE_USER, db.DB_PARAMS{"id": uid}, db.DB_FIELDS{"google_serect"})
 	if one == nil || one["google_serect"].ToString() == "" {
 		rs.State = 1
-		rs.Msg = "faild"
+		rs.Msg = shareddomain.MsgFailed
 		rs.UserInfo = nil
 		return rs
 	}
@@ -250,7 +251,7 @@ func (m *UserModel) GoogleAuthLogin(uid int, verdifyCode string, ip string) *Log
 	code, _ := auth.GetCode(one["google_serect"].ToString())
 	if code != verdifyCode {
 		rs.State = 1
-		rs.Msg = "err code"
+		rs.Msg = shareddomain.MsgVerifyCodeInvalid
 		rs.UserInfo = nil
 		return rs
 	}
@@ -298,23 +299,23 @@ func (m *UserModel) ChangePassword(uid int, rq *ChangePasswordRequest) *BaseResp
 	one, _ := config.GlobalDB.FetchOne(DB_TABLE_USER, db.DB_PARAMS{"password": oldPass, "id": uid}, db.DB_FIELDS{"id"})
 	if one == nil {
 		rs.State = CHANGE_PASS_STATE_OLDERROR
-		rs.Msg = "old password error"
+		rs.Msg = shareddomain.MsgPasswordInvalid
 		return rs
 	}
 	if rq.NewPassword != rq.ReNewPassword {
 		rs.State = CHANGE_PASS_STATE_REERROR
-		rs.Msg = "confirm password error"
+		rs.Msg = shareddomain.MsgPasswordInvalid
 		return rs
 	}
 	if len(rq.NewPassword) < 6 || len(rq.NewPassword) > 20 {
 		rs.State = REGISTER_STATE_ERRORPASSWORD
-		rs.Msg = "the password must between 6-20"
+		rs.Msg = shareddomain.MsgPasswordLength
 		return rs
 	}
 	newPass := m.EncodePassword(rq.NewPassword)
 	config.GlobalDB.UpdateData(DB_TABLE_USER, db.DB_PARAMS{"password": newPass}, db.DB_PARAMS{"id": one["id"].Value})
 	rs.State = STATE_SUCCESS
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }
 
@@ -333,18 +334,18 @@ func (m *UserModel) BindGoogleAuth(uid int, secret string, verdifycode string) *
 	rs := new(BaseResponse)
 	if one != nil && one["google_serect"].ToString() != "" {
 		rs.State = 1
-		rs.Msg = "google auth binded"
+		rs.Msg = shareddomain.MsgAlreadyBound
 		return rs
 	}
 	auth := google.NewGoogleAuth()
 	code, _ := auth.GetCode(secret)
 	if verdifycode != code {
 		rs.State = 1
-		rs.Msg = "verdify code is error"
+		rs.Msg = shareddomain.MsgVerifyCodeInvalid
 		return rs
 	}
 	m.Update(uid, db.DB_PARAMS{"google_serect": secret})
 	rs.State = 0
-	rs.Msg = "success"
+	rs.Msg = shareddomain.MsgSuccess
 	return rs
 }

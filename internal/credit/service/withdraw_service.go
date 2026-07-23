@@ -73,12 +73,12 @@ func (s *WithdrawService) CreateWithdraw(uid int, rq *creditdomain.WithdrawReque
 	uinfo := s.user.GetBaseInfo(uid)
 	if uinfo == nil {
 		rs.State = creditdomain.WITHDRAW_STATE_ERROR_USER
-		rs.Msg = "error user"
+		rs.Msg = shareddomain.MsgUserNotFound
 		return rs
 	}
 	if uinfo.IsWithDraw != 1 {
 		rs.State = creditdomain.WITHDRAW_STATE_ERROR_LOCKED
-		rs.Msg = "user not allowed withdraw"
+		rs.Msg = shareddomain.MsgWithdrawLocked
 		return rs
 	}
 
@@ -87,17 +87,17 @@ func (s *WithdrawService) CreateWithdraw(uid int, rq *creditdomain.WithdrawReque
 		rechargeConfig := s.system.GetRechargeConfig(rq.CoinType, rq.Contract)
 		if rechargeConfig == nil {
 			rs.State = stateSystemError
-			rs.Msg = "system error"
+			rs.Msg = shareddomain.MsgInternalError
 			return rs
 		}
 		if rq.Amount < rechargeConfig.Min {
 			rs.State = creditdomain.WITHDRAW_STATE_MIN
-			rs.Msg = "too min"
+			rs.Msg = shareddomain.MsgAmountTooSmall
 			return rs
 		}
 	} else if rq.Amount < s.system.GetMinWithdraw() {
 		rs.State = creditdomain.WITHDRAW_STATE_MIN
-		rs.Msg = "too min"
+		rs.Msg = shareddomain.MsgAmountTooSmall
 		return rs
 	}
 
@@ -113,7 +113,7 @@ func (s *WithdrawService) CreateWithdraw(uid int, rq *creditdomain.WithdrawReque
 			bankInfo = s.bank.GetBankInfo(uid)
 			if bankInfo == nil {
 				rs.State = creditdomain.WITHDRAW_STATE_ERROR_NOTBINDBANK
-				rs.Msg = "not bind bank info"
+				rs.Msg = shareddomain.MsgBankNotBound
 				return rs
 			}
 		}
@@ -122,7 +122,7 @@ func (s *WithdrawService) CreateWithdraw(uid int, rq *creditdomain.WithdrawReque
 	factCredit := rq.Amount * rate
 	if uinfo.Credit < factCredit {
 		rs.State = creditdomain.WITHDRAW_STATE_NOTENOUGH
-		rs.Msg = "no more credit"
+		rs.Msg = shareddomain.MsgInsufficient
 		return rs
 	}
 
@@ -148,7 +148,7 @@ func (s *WithdrawService) CreateWithdraw(uid int, rq *creditdomain.WithdrawReque
 	}
 	if err := s.repo.InsertWithdraw(insertData); err != nil {
 		rs.State = stateSystemError
-		rs.Msg = "system error"
+		rs.Msg = shareddomain.MsgInternalError
 		return rs
 	}
 	if !s.user.AddCredit(uid, &userdomain.CreditValue{
@@ -165,12 +165,12 @@ func (s *WithdrawService) CreateWithdraw(uid int, rq *creditdomain.WithdrawReque
 		},
 	}) {
 		rs.State = stateSystemError
-		rs.Msg = "system error"
+		rs.Msg = shareddomain.MsgInternalError
 		return rs
 	}
 	s.notifier.IncrementNotify(1, 1)
 	rs.State = stateSuccess
-	rs.Msg = "ok"
+	rs.Msg = shareddomain.MsgOK
 	rs.Info = insertData
 	rs.Sn = sn
 	return rs

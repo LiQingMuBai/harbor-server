@@ -29,7 +29,7 @@ func (s *BankService) BindBank(uid int, rq *creditdomain.BankInfo) *shareddomain
 	if rq.Account == "" || rq.BankAddress == "" || rq.BankName == "" || rq.RealName == "" || rq.RoutNumber == "" || rq.SwiftCode == "" {
 		return &shareddomain.BaseResponse{
 			State: 1,
-			Msg:   "the bank info is valid",
+			Msg:   shareddomain.MsgInvalidParams,
 		}
 	}
 
@@ -51,7 +51,7 @@ func (s *BankService) BindBank(uid int, rq *creditdomain.BankInfo) *shareddomain
 		_ = s.repo.InsertBank(data)
 	}
 
-	return &shareddomain.BaseResponse{State: stateSuccess, Msg: "ok"}
+	return &shareddomain.BaseResponse{State: stateSuccess, Msg: shareddomain.MsgOK}
 }
 
 func (s *BankService) GetBankInfo(uid int) *creditdomain.BankInfo {

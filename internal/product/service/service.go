@@ -111,42 +111,42 @@ func (s *Service) Buy(uid int, rq *productdomain.BuyRequest) *shareddomain.BaseR
 	rs := new(shareddomain.BaseResponse)
 	if uinfo == nil {
 		rs.State = stateSystemError
-		rs.Msg = "system error"
+		rs.Msg = shareddomain.MsgInternalError
 		return rs
 	}
 	if pinfo == nil {
 		rs.State = stateSystemError
-		rs.Msg = "no this product"
+		rs.Msg = shareddomain.MsgProductNotFound
 		return rs
 	}
 	count := s.repo.CountUserProductOrders(uid, rq.Pid)
 	if count >= pinfo.PerLimit && pinfo.PerLimit > 0 {
 		rs.State = productdomain.BUY_STATE_PER_LIMIT
-		rs.Msg = "you buy limit"
+		rs.Msg = shareddomain.MsgOrderLimitReached
 		return rs
 	}
 	if pinfo.Type == productdomain.MTYPE_R {
 		if pinfo.Min > 0 && rq.Amount < pinfo.Min {
 			rs.State = productdomain.BUY_STATE_MIN
-			rs.Msg = "min"
+			rs.Msg = shareddomain.MsgAmountTooSmall
 			return rs
 		}
 		if pinfo.IsPublic == 1 {
 			if uinfo.Credit < rq.Amount {
 				rs.State = productdomain.BUY_STATE_CREDIT
-				rs.Msg = "not enough credit"
+				rs.Msg = shareddomain.MsgInsufficient
 				return rs
 			}
 			if pinfo.Max > 0 && rq.Amount > pinfo.Max {
 				rs.State = productdomain.BUY_STATE_MAX
-				rs.Msg = "max"
+				rs.Msg = shareddomain.MsgLimitExceeded
 				return rs
 			}
 		} else {
 			ids := s.GetROrder(uid)
 			if len(ids) > 0 {
 				rs.State = productdomain.BUY_V_GETED
-				rs.Msg = "geted"
+				rs.Msg = shareddomain.MsgAlreadyExists
 				return rs
 			}
 		}
@@ -154,7 +154,7 @@ func (s *Service) Buy(uid int, rq *productdomain.BuyRequest) *shareddomain.BaseR
 		rq.Amount = 0
 		if s.repo.HasUserProductOrder(uid, pinfo.Id) {
 			rs.State = productdomain.BUY_V_GETED
-			rs.Msg = "geted"
+			rs.Msg = shareddomain.MsgAlreadyExists
 			return rs
 		}
 	}
@@ -188,7 +188,7 @@ func (s *Service) Buy(uid int, rq *productdomain.BuyRequest) *shareddomain.BaseR
 	if err := s.repo.InsertOrder(insertData); err == nil {
 		if pinfo.IsPublic == 0 {
 			rs.State = stateSuccess
-			rs.Msg = "success"
+			rs.Msg = shareddomain.MsgSuccess
 			return rs
 		}
 		if s.user.AddCredit(uid, &userdomain.CreditValue{
@@ -210,13 +210,13 @@ func (s *Service) Buy(uid int, rq *productdomain.BuyRequest) *shareddomain.BaseR
 			},
 		}) {
 			rs.State = stateSuccess
-			rs.Msg = "success"
+			rs.Msg = shareddomain.MsgSuccess
 			return rs
 		}
 	}
 
 	rs.State = stateSystemError
-	rs.Msg = "system error"
+	rs.Msg = shareddomain.MsgInternalError
 	return rs
 }
 
@@ -277,12 +277,12 @@ func (s *Service) Unlock(uid int, sn string) *shareddomain.BaseResponse {
 	one := s.GetOrderInfo(uid, sn)
 	if one == nil {
 		rs.State = stateFailed
-		rs.Msg = "no this order"
+		rs.Msg = shareddomain.MsgOrderNotFound
 		return rs
 	}
 	if ntime < one["endtime"].ToInt() {
 		rs.State = stateFailed
-		rs.Msg = "no this order"
+		rs.Msg = shareddomain.MsgOrderNotFound
 		return rs
 	}
 
@@ -304,12 +304,12 @@ func (s *Service) Unlock(uid int, sn string) *shareddomain.BaseResponse {
 		TeamCoinLogInfo: nil,
 	}) {
 		rs.State = stateSuccess
-		rs.Msg = "success"
+		rs.Msg = shareddomain.MsgSuccess
 		return rs
 	}
 
 	rs.State = stateSystemError
-	rs.Msg = "system error"
+	rs.Msg = shareddomain.MsgInternalError
 	return rs
 }
 
