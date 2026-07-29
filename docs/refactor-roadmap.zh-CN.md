@@ -36,8 +36,7 @@
 
 - 以 `.env` 作为主配置来源
 - 启动层 `internal/bootstrap/shared` 现在也能读到 `.env`
-- 删除仓库内真实 `config/config.json`
-- 增加 `config/config.example.json` 作为兼容模板
+- 删除 `config.json` 依赖，配置只走 `.env`
 - 将部分硬编码敏感信息改为环境变量读取
 
 收益：

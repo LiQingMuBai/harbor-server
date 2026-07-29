@@ -17,6 +17,7 @@ var (
 
 var configKeys = []string{
 	"credit_coin",
+	"mysql_dsn",
 	"dbname",
 	"dbhost",
 	"dbuser",
@@ -107,20 +108,44 @@ func parseDotEnv(content []byte, target map[string]string) {
 		key := normalizeEnvKey(strings.TrimSpace(line[:index]))
 		value := strings.TrimSpace(line[index+1:])
 		value = strings.Trim(value, `"'`)
+		value = stripInlineComment(value)
 		if key != "" {
 			target[key] = value
 		}
 	}
 }
 
+func stripInlineComment(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	for i := 0; i < len(value); i++ {
+		if value[i] != '#' {
+			continue
+		}
+		if i == 0 {
+			return ""
+		}
+		prev := value[i-1]
+		if prev == ' ' || prev == '\t' {
+			return strings.TrimSpace(value[:i])
+		}
+	}
+	return value
+}
+
 func lookupEnvValue(key string) (string, bool) {
 	loadDotEnv()
 	envKey := normalizeEnvKey(key)
 	if value, ok := os.LookupEnv(envKey); ok {
-		return value, true
+		return stripInlineComment(value), true
 	}
 	value, ok := envValues[envKey]
-	return value, ok
+	if !ok {
+		return "", false
+	}
+	return stripInlineComment(value), true
 }
 
 func normalizeEnvKey(key string) string {

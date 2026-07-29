@@ -5,7 +5,7 @@ import (
 	"cointrade/lib/redis"
 	"cointrade/utils"
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
 	"reflect"
 	"strings"
 )
@@ -93,20 +93,23 @@ var GlobalMongo *db.MongoDB
 func InitGlobal(ismodel bool) error {
 	GlobalSMS = new(utils.SmsAPI)
 	//加载时读取CONFIG文件
-	GlobalConfig.GetConfig("config.json")
+	GlobalConfig.LoadFromEnv()
 	GlobalSMS.AppId = GlobalConfig.GetValue("SMSID").ToString()
 	GlobalSMS.AppKey = GlobalConfig.GetValue("SMSKEY").ToString()
 	if !ismodel {
 		return nil
 	}
 	GlobalDB = new(db.MysqlWorker)
-	GlobalDB.SetLinkInfo(
-		GlobalConfig.GetValue("dbhost").ToString(),
-		GlobalConfig.GetValue("dbport").ToInt(),
-		GlobalConfig.GetValue("dbuser").ToString(),
-		GlobalConfig.GetValue("dbpass").ToString(),
-		GlobalConfig.GetValue("dbname").ToString(),
-	)
+	mysqlDSN := ""
+	if value := GlobalConfig.GetValue("mysql_dsn"); value != nil {
+		mysqlDSN = strings.TrimSpace(value.ToString())
+	}
+	if mysqlDSN == "" {
+		err := fmt.Errorf("invalid mysql config: mysql_dsn is empty")
+		utils.ServiceError("mysql config invalid:", err)
+		return err
+	}
+	GlobalDB.SetDSN(mysqlDSN)
 	err := GlobalDB.Connect()
 	if err != nil {
 		utils.ServiceError("mysql connect failed:", err)
@@ -146,24 +149,17 @@ func InitGlobal(ismodel bool) error {
 	//fmt.Println(GlobalConfig.GetValue("test_withdrawnum").ToInt())
 	return nil
 }
-func (m *MConfig) GetConfig(filename string) {
+
+func (m *MConfig) LoadFromEnv() {
 	m.ConfigMap = make(map[string]interface{})
 	for _, key := range configKeys {
 		m.ConfigMap[key] = ""
 	}
-	filepath, err := resolveConfigFile(filename)
-	if err == nil {
-		content, readErr := ioutil.ReadFile(filepath)
-		if readErr != nil {
-			utils.Log("config file error", readErr.Error())
-		} else if err = json.Unmarshal(content, &m.ConfigMap); err != nil {
-			utils.Log("config file error", err.Error())
-		}
-	}
 	overlayEnvConfig(m.ConfigMap)
-	if len(m.ConfigMap) == 0 && err != nil {
-		utils.Log("config file error", err.Error())
-	}
+}
+
+func (m *MConfig) GetConfig(filename string) {
+	m.LoadFromEnv()
 }
 func GetSettingConfig() {
 	config, err := GlobalDB.FetchRows("systemconfig", db.DB_PARAMS{}, db.DB_FIELDS{})
@@ -268,12 +264,8 @@ func (m *ConfigValue) ToArray() []*ConfigValue {
 }
 func OutCardConfig() interface{} {
 	var rs interface{}
-	filepath, err := resolveConfigFile("cardconfig.json")
-	if err == nil {
-		content, readErr := ioutil.ReadFile(filepath)
-		if readErr == nil {
-			json.Unmarshal(content, &rs)
-		}
+	if value := strings.TrimSpace(GlobalConfig.GetValue("cardconfig").ToString()); value != "" {
+		_ = json.Unmarshal([]byte(value), &rs)
 	}
 	return rs
 }

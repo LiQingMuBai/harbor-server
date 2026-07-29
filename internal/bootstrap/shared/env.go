@@ -18,7 +18,7 @@ func ensureEnvLoaded() {
 
 func Getenv(key string, defaultValue string) string {
 	ensureEnvLoaded()
-	value := strings.TrimSpace(os.Getenv(key))
+	value := strings.TrimSpace(stripInlineComment(os.Getenv(key)))
 	if value == "" {
 		return defaultValue
 	}
@@ -27,7 +27,7 @@ func Getenv(key string, defaultValue string) string {
 
 func GetenvInt(key string, defaultValue int) int {
 	ensureEnvLoaded()
-	value := strings.TrimSpace(os.Getenv(key))
+	value := strings.TrimSpace(stripInlineComment(os.Getenv(key)))
 	if value == "" {
 		return defaultValue
 	}
@@ -36,6 +36,26 @@ func GetenvInt(key string, defaultValue int) int {
 		return defaultValue
 	}
 	return number
+}
+
+func stripInlineComment(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	for i := 0; i < len(value); i++ {
+		if value[i] != '#' {
+			continue
+		}
+		if i == 0 {
+			return ""
+		}
+		prev := value[i-1]
+		if prev == ' ' || prev == '\t' {
+			return strings.TrimSpace(value[:i])
+		}
+	}
+	return value
 }
 
 func ParseRPCClients(value string) map[int]string {

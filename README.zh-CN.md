@@ -53,16 +53,15 @@ cp .env.example .env
 
 2. 至少补齐这些配置：
 
-- MySQL：`DB_HOST`、`DB_PORT`、`DB_USER`、`DB_PASS`、`DB_NAME`
+- MySQL：`MYSQL_DSN`
 - MongoDB：`MONGO_URI`、`MONGO_DBNAME`
 - Redis：`REDIS_HOST`、`REDIS_PORT`
 - 服务端口：`API_PORT`、`ADMIN_PORT`、`WSS_PORT`、`CDN_PORT`
 - 可选外部依赖：`ETH_RPC_URL`、`TRON_GRPC_ADDR`、`EXCHANGE_RATE_API_KEY`、`WS_ADMIN_PASS`
 
-3. 兼容说明：
+3. 说明：
 
-- `config/config.example.json` 仅作为兼容模板保留
-- 真实敏感配置应只放在 `.env`，不要提交到仓库
+- 项目只支持 `.env` 配置，不要再引入 `config.json`
 
 ## 服务入口
 

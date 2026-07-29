@@ -53,16 +53,15 @@ cp .env.example .env
 
 2. Fill in the required values:
 
-- MySQL: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS`, `DB_NAME`
+- MySQL: `MYSQL_DSN`
 - MongoDB: `MONGO_URI`, `MONGO_DBNAME`
 - Redis: `REDIS_HOST`, `REDIS_PORT`
 - Service ports: `API_PORT`, `ADMIN_PORT`, `WSS_PORT`, `CDN_PORT`
 - Optional integrations: `ETH_RPC_URL`, `TRON_GRPC_ADDR`, `EXCHANGE_RATE_API_KEY`, `WS_ADMIN_PASS`
 
-3. Optional compatibility file:
+3. Notes:
 
-- `config/config.example.json` is provided only as a compatibility template.
-- Real secrets should stay in `.env` and must not be committed.
+- `.env` is the only configuration source; do not add `config.json` back.
 
 ## Service Entrypoints
 

@@ -34,7 +34,7 @@ cp .env.example .env
 
 2. 至少补齐以下配置：
 
-- MySQL：`DB_HOST`、`DB_PORT`、`DB_USER`、`DB_PASS`、`DB_NAME`
+- MySQL：`MYSQL_DSN`
 - MongoDB：`MONGO_URI`、`MONGO_DBNAME`
 - Redis：`REDIS_HOST`、`REDIS_PORT`
 - API：`API_PORT`、`API_LOCAL_IP`、`API_RPC_PORT`
@@ -56,7 +56,7 @@ cp .env.example .env
 
 ### 基础依赖
 
-- `DB_*`：MySQL 连接配置
+- `MYSQL_DSN`：MySQL 连接配置（DSN）
 - `MONGO_*`：MongoDB 配置，优先使用 `MONGO_URI`
 - `REDIS_*`：Redis 配置
 
@@ -191,7 +191,7 @@ cp .env.docker.example .env.docker
 
 至少补齐以下配置：
 
-- `DB_HOST`、`DB_PORT`、`DB_USER`、`DB_PASS`、`DB_NAME`
+- `MYSQL_DSN`
 - `MONGO_URI`、`MONGO_DBNAME`
 - `API_PORT`、`API_RPC_PORT`
 - `ADMIN_PORT`
@@ -313,7 +313,7 @@ docker compose --env-file .env.docker up -d --build task
 ### 安全
 
 - 不要提交 `.env`
-- 不要提交 `config/config.json`
+- 不要引入 `config.json`
 - `WS_ADMIN_PASS` 必须单独配置
 - 生产环境必须替换所有默认地址与示例值
 

@@ -21,7 +21,7 @@ cp .env.docker.example .env.docker
 
 至少补齐以下配置：
 
-- `DB_HOST`、`DB_PORT`、`DB_USER`、`DB_PASS`、`DB_NAME`
+- `MYSQL_DSN`
 - `MONGO_URI`、`MONGO_DBNAME`
 - `API_PORT`、`API_RPC_PORT`
 - `ADMIN_PORT`

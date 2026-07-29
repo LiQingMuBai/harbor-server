@@ -27,6 +27,7 @@ type Mysql struct {
 	user   string
 	pass   string
 	dbname string
+	dsn    string
 	db     *sql.DB
 }
 
@@ -36,14 +37,30 @@ func (conn *Mysql) SetLinkInfo(host string, port int, user string, pass string, 
 	conn.pass = pass
 	conn.user = user
 	conn.dbname = dbname
+	conn.dsn = ""
 }
+
+func (conn *Mysql) SetDSN(dsn string) {
+	conn.dsn = strings.TrimSpace(dsn)
+}
+
 func (conn *Mysql) Connect() error {
-	sqlstr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", conn.user, conn.pass, conn.host, conn.port, conn.dbname)
+	sqlstr := strings.TrimSpace(conn.dsn)
+	if sqlstr == "" {
+		sqlstr = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", conn.user, conn.pass, conn.host, conn.port, conn.dbname)
+	}
 	//println(sqlstr)
 	db, err := sql.Open("mysql", sqlstr)
+	if err != nil {
+		return err
+	}
 	db.SetMaxIdleConns(50)
+	if err = db.Ping(); err != nil {
+		_ = db.Close()
+		return err
+	}
 	conn.db = db
-	return err
+	return nil
 }
 func (conn *Mysql) SetNames() error {
 	_, err := conn.db.Exec("set names 'utf8'")
