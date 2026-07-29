@@ -2,14 +2,15 @@
 
 GO ?= go
 BIN_DIR ?= bin
+BIN_PREFIX ?= harbor
 
-API_BIN ?= $(BIN_DIR)/harbor-api
-ADMIN_BIN ?= $(BIN_DIR)/harbor-admin
-WSS_BIN ?= $(BIN_DIR)/harbor-wss
-CDN_BIN ?= $(BIN_DIR)/harbor-cdn
-TASK_BIN ?= $(BIN_DIR)/harbor-task
-TASK_DATA_BIN ?= $(BIN_DIR)/harbor-task-data
-TASK_JOBS_BIN ?= $(BIN_DIR)/harbor-task-jobs
+API_BIN ?= $(BIN_DIR)/$(BIN_PREFIX)-api
+ADMIN_BIN ?= $(BIN_DIR)/$(BIN_PREFIX)-admin
+WSS_BIN ?= $(BIN_DIR)/$(BIN_PREFIX)-wss
+CDN_BIN ?= $(BIN_DIR)/$(BIN_PREFIX)-cdn
+TASK_BIN ?= $(BIN_DIR)/$(BIN_PREFIX)-task
+TASK_DATA_BIN ?= $(BIN_DIR)/$(BIN_PREFIX)-task-data
+TASK_JOBS_BIN ?= $(BIN_DIR)/$(BIN_PREFIX)-task-jobs
 
 GOFLAGS ?= -trimpath
 LDFLAGS ?= -s -w
@@ -19,6 +20,7 @@ help:
 	@printf "%s\n" \
 	"Targets:" \
 	"  make build            Build all cmd binaries into ./$(BIN_DIR)" \
+	"  make build BIN_PREFIX=cointrade   Build with custom binary prefix" \
 	"  make build-api        Build $(API_BIN)" \
 	"  make build-admin      Build $(ADMIN_BIN)" \
 	"  make build-wss        Build $(WSS_BIN)" \
@@ -65,4 +67,3 @@ build-task-jobs: $(BIN_DIR)
 .PHONY: clean
 clean:
 	@rm -rf $(BIN_DIR)
-
