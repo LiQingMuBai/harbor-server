@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -15,14 +16,20 @@ import (
 )
 
 type Options struct {
-	Port   int
-	Domain string
+	Port          int
+	Domain        string
+	StaticDir     string
+	PDFDir        string
+	WhitepaperDir string
 }
 
 func OptionsFromEnv() (Options, error) {
 	options := Options{
-		Port:   shared.GetenvInt("CDN_PORT", 9999),
-		Domain: strings.TrimSpace(shared.Getenv("CDN_DOMAIN", "")),
+		Port:          shared.GetenvInt("CDN_PORT", 9999),
+		Domain:        strings.TrimSpace(shared.Getenv("CDN_DOMAIN", "")),
+		StaticDir:     strings.TrimSpace(shared.Getenv("CDN_STATIC_DIR", "./static")),
+		PDFDir:        strings.TrimSpace(shared.Getenv("CDN_PDF_DIR", "./pdf")),
+		WhitepaperDir: strings.TrimSpace(shared.Getenv("CDN_WHITEPAPER_DIR", "./whitepaper")),
 	}
 	if options.Domain == "" {
 		return Options{}, errors.New("missing CDN_DOMAIN")
@@ -33,13 +40,13 @@ func OptionsFromEnv() (Options, error) {
 func Run(options Options) error {
 	router := gin.Default()
 	router.Use(crossDomain)
-	router.POST("/", checkSid, upload(options.Domain))
+	router.POST("/", checkSid, upload(options.Domain, options.StaticDir))
 	router.OPTIONS("/", func(r *gin.Context) {
 		r.JSON(http.StatusOK, nil)
 	})
-	router.Static("/static", "./static")
-	router.Static("/pdf", "./pdf")
-	router.Static("/whitepaper", "./whitepaper")
+	router.Static("/static", options.StaticDir)
+	router.Static("/pdf", options.PDFDir)
+	router.Static("/whitepaper", options.WhitepaperDir)
 	return router.Run(fmt.Sprintf(":%d", options.Port))
 }
 
@@ -61,15 +68,15 @@ func checkSid(r *gin.Context) {
 	r.Next()
 }
 
-func upload(domain string) gin.HandlerFunc {
+func upload(domain string, staticDir string) gin.HandlerFunc {
 	return func(r *gin.Context) {
 		file, err := r.FormFile("file")
 		if err != nil {
 			r.JSON(http.StatusForbidden, "upload error")
 			return
 		}
-		filename := file.Filename
-		parts := strings.Split(filename, ".")
+		originalFilename := file.Filename
+		parts := strings.Split(originalFilename, ".")
 		fileType := strings.ToLower(parts[len(parts)-1])
 		allowed := false
 		for _, value := range []string{"jpg", "jpeg", "png", "gif", "pdf"} {
@@ -82,18 +89,26 @@ func upload(domain string) gin.HandlerFunc {
 			r.JSON(http.StatusForbidden, "file type is not allowed")
 			return
 		}
-		saveDir := "static/" + time.Now().Format("20060102") + "/" + strconv.Itoa(time.Now().Hour()) + "/"
+
+		date := time.Now().Format("20060102")
+		hour := strconv.Itoa(time.Now().Hour())
+		saveDir := filepath.Join(staticDir, date, hour)
 		if !utils.FileExists(saveDir) {
 			if os.MkdirAll(saveDir, os.ModePerm) != nil {
 				r.JSON(http.StatusForbidden, "dir make error")
 				return
 			}
 		}
-		savePath := saveDir + utils.RandName() + "." + fileType
+
+		filename := utils.RandName() + "." + fileType
+		savePath := filepath.Join(saveDir, filename)
 		if r.SaveUploadedFile(file, savePath) != nil {
 			r.JSON(http.StatusForbidden, "savefile error")
 			return
 		}
-		r.JSON(http.StatusOK, map[string]string{"path": domain + savePath})
+
+		domainPrefix := strings.TrimRight(domain, "/")
+		publicPath := "static/" + date + "/" + hour + "/" + filename
+		r.JSON(http.StatusOK, map[string]string{"path": domainPrefix + "/" + publicPath})
 	}
 }
