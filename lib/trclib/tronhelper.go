@@ -177,7 +177,7 @@ func (h *TronHelper) GetTransferFromFuncHeader() string {
 	return fmt.Sprintf("%x", s[0:4])
 }
 func (h *TronHelper) InitClient() {
-	addr := strings.TrimSpace(os.Getenv("TRON_GRPC_ADDR"))
+	addr := utils.StripInlineComment(strings.TrimSpace(os.Getenv("TRON_GRPC_ADDR")))
 	if addr == "" {
 		addr = "grpc.trongrid.io:50052"
 	}

@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"cointrade/utils"
 )
 
 func GetCurrencyRate() map[string]float64 {
 	//通过接口获取到汇率
-	apiKey := strings.TrimSpace(os.Getenv("EXCHANGE_RATE_API_KEY"))
+	apiKey := utils.StripInlineComment(strings.TrimSpace(os.Getenv("EXCHANGE_RATE_API_KEY")))
 	if apiKey == "" {
 		return nil
 	}

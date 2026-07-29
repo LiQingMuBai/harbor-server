@@ -543,7 +543,7 @@ func (m *WwebsocketWorker) Login(rq *BaseRequestMessage, r *gin.Context, ws *web
 			models.MODEL_USER.Update(uid, db.DB_PARAMS{"online": 1})
 			return
 		} else {
-			expectedAdminPass := strings.TrimSpace(os.Getenv("WS_ADMIN_PASS"))
+			expectedAdminPass := utils.StripInlineComment(strings.TrimSpace(os.Getenv("WS_ADMIN_PASS")))
 			if expectedAdminPass != "" && admin_pass != nil && admin_pass.ToString() == expectedAdminPass {
 				admin_id := utils.GetNow()
 				r.Set("loginstate", 1)

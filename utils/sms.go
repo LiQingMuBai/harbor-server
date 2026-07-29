@@ -27,7 +27,7 @@ func (m *SmsAPI) CreateSign() (string, int) {
 }
 
 func (m *SmsAPI) SendSms(phone string, content string) bool {
-	apiURL := strings.TrimSpace(os.Getenv("SMS_API_URL"))
+	apiURL := StripInlineComment(strings.TrimSpace(os.Getenv("SMS_API_URL")))
 	if apiURL == "" {
 		apiURL = defaultSMSAPIURL
 	}
@@ -70,22 +70,22 @@ func (m *SmsAPI) SendSms(phone string, content string) bool {
 }
 
 func (m *SmsAPI) SendSmsA(phone string, content string) bool {
-	apiURL := strings.TrimSpace(os.Getenv("SMS_API_URL"))
+	apiURL := StripInlineComment(strings.TrimSpace(os.Getenv("SMS_API_URL")))
 	if apiURL == "" {
 		apiURL = defaultSMSAPIURL
 	}
 
-	appID := strings.TrimSpace(os.Getenv("SMS_API_ID"))
+	appID := StripInlineComment(strings.TrimSpace(os.Getenv("SMS_API_ID")))
 	if appID == "" {
-		appID = strings.TrimSpace(os.Getenv("SMSID"))
+		appID = StripInlineComment(strings.TrimSpace(os.Getenv("SMSID")))
 	}
 	if appID == "" {
 		appID = m.AppId
 	}
 
-	appKey := strings.TrimSpace(os.Getenv("SMS_API_KEY"))
+	appKey := StripInlineComment(strings.TrimSpace(os.Getenv("SMS_API_KEY")))
 	if appKey == "" {
-		appKey = strings.TrimSpace(os.Getenv("SMSKEY"))
+		appKey = StripInlineComment(strings.TrimSpace(os.Getenv("SMSKEY")))
 	}
 	if appKey == "" {
 		appKey = m.AppKey

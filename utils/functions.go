@@ -77,7 +77,7 @@ func parseDotEnvLines(content []byte) {
 			continue
 		}
 		key := strings.TrimSpace(line[:index])
-		value := strings.Trim(strings.TrimSpace(line[index+1:]), `"'`)
+		value := StripInlineComment(strings.Trim(strings.TrimSpace(line[index+1:]), `"'`))
 		if key == "" {
 			continue
 		}
@@ -89,7 +89,7 @@ func parseDotEnvLines(content []byte) {
 }
 
 func getEnvInt(key string, defaultValue int) int {
-	value := strings.TrimSpace(os.Getenv(key))
+	value := StripInlineComment(strings.TrimSpace(os.Getenv(key)))
 	if value == "" {
 		return defaultValue
 	}

@@ -105,7 +105,7 @@ func (m *EthLib) Close() {
 	m.Client.Close()
 }
 func (m *EthLib) CreateClient() bool {
-	rpcURL := strings.TrimSpace(os.Getenv("ETH_RPC_URL"))
+	rpcURL := utils.StripInlineComment(strings.TrimSpace(os.Getenv("ETH_RPC_URL")))
 	if rpcURL == "" {
 		return false
 	}
