@@ -115,9 +115,9 @@ type WwebsocketWorker struct {
 
 func StartWSSBackgroundJobs() {
 	DataUpdateFunc()
-	go DBMessageService()
+	//go DBMessageService()
 	go MessageService()
-	go DBServiceMessageReciveFunc()
+	//go DBServiceMessageReciveFunc()
 	go DataService()
 }
 

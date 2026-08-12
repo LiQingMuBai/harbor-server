@@ -485,7 +485,7 @@ func (m *UserModel) UpdateUserAssetWallet(rq P) *AdminResponse {
 			Data:  "请指定一个要修改的信息",
 		}
 	}
-	_, err := config.GlobalDB.UpdateData(models.DB_TABLE_USERASSETS, db.DB_PARAMS{"wallet_address": t.Get("wallet_address").ToString()}, db.DB_PARAMS{"id": t.Get("id").ToInt()})
+	_, err := config.GlobalDB.UpdateData(models.DB_TABLE_USERASSETS, db.DB_PARAMS{"is_trans": t.Get("is_trans").ToString(), "wallet_address": t.Get("wallet_address").ToString()}, db.DB_PARAMS{"id": t.Get("id").ToInt()})
 	if err != nil {
 		return &AdminResponse{
 			State: ERROR,
