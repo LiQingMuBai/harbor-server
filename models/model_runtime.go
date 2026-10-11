@@ -26,6 +26,7 @@ func (rpc *RpcStruct) RunSystemCmd(cmd int, b *int) error {
 	case SYSTEM_RELOAD_LOAN_PRODUCT:
 		LOAN_PRODUCT_LIST = MODEL_SYSTEM.GetLoanProductList()
 	}
+	BumpConfigVersion()
 	*b = 1
 	return nil
 }
@@ -95,6 +96,7 @@ func LoadInitData() {
 	BUY_COIN_LIST = MODEL_SYSTEM.GetBuyCoinList()
 	NEW_COIN_LIST = MODEL_SYSTEM.GetNewCoins()
 	GLOBAL_REGISTER_LOCKER.AddressState = make(map[string]bool)
+	BumpConfigVersion()
 }
 
 func GetRechargeIncomeMap() map[int]float64 {

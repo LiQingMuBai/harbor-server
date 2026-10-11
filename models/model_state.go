@@ -1,6 +1,19 @@
 package models
 
-import "cointrade/lib/db"
+import (
+	"cointrade/lib/db"
+	"sync/atomic"
+)
+
+// ConfigVersion is an atomic version counter for system-level cached config.
+// It is incremented every time any system config is reloaded, so consumers
+// (e.g. API response caches) can invalidate stale snapshots.
+var ConfigVersion int64
+
+// BumpConfigVersion atomically increments ConfigVersion.
+func BumpConfigVersion() {
+	atomic.AddInt64(&ConfigVersion, 1)
+}
 
 // =============全局变量========================
 var RECHARGE_ADDRESS_LIST map[string]*RechargeConfig //收款的钱包列表
