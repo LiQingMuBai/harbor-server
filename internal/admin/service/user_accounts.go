@@ -1,30 +1,30 @@
 package service
 
 import (
+	"fmt"
+	"strings"
+
 	"cointrade/config"
 	"cointrade/lib/db"
 	"cointrade/models"
 	"cointrade/utils"
-	"fmt"
-	"strings"
-	"unsafe"
+)
+
+const (
+	coinTypeUSDT = 100
+	assetUSDT    = "usdt"
 )
 
 func (m *UserModel) SaveParentMemo(rq P) *AdminResponse {
 	t := rq.Ts()
-	user := models.MODEL_USER.GetBaseInfo(t.Get("topid").ToInt())
+	topID := t.Get("topid").ToInt()
+	user := models.MODEL_USER.GetBaseInfo(topID)
 	if user == nil {
-		return &AdminResponse{
-			State: ERROR,
-			Data:  "当前用户不存在!",
-		}
+		return &AdminResponse{State: ERROR, Data: "当前用户不存在!"}
 	}
-	models.MODEL_USER.Update(t.Get("topid").ToInt(), db.DB_PARAMS{"memo": t.Get("memo").ToString()})
+	models.MODEL_USER.Update(topID, db.DB_PARAMS{"memo": t.Get("memo").ToString()})
 	models.MODEL_USER.ClearCache(t.Get("uid").ToInt())
-	return &AdminResponse{
-		State: SUCCESS,
-		Data:  "修改成功!",
-	}
+	return &AdminResponse{State: SUCCESS, Data: "修改成功!"}
 }
 
 func (m *UserModel) UserList(rq P) *AdminResponse {
@@ -54,24 +54,29 @@ func (m *UserModel) UserList(rq P) *AdminResponse {
 	if v := pdata.Get("status").ToString(); v != "" {
 		where = append(where, fmt.Sprintf("status  = %s", v))
 	}
-	if v := pdata.Get("online").ToString(); v != "" {
-		where = append(where, fmt.Sprintf("online = %d", pdata.Get("online").ToInt()))
-	}
-	if v := pdata.Get("approve_state").ToString(); v != "" {
-		where = append(where, fmt.Sprintf("approve_state  = %s", v))
+	onlineVal := pdata.Get("online")
+	if onlineVal.ToString() != "" {
+		where = append(where, fmt.Sprintf("online = %d", onlineVal.ToInt()))
 	}
 
-	list, _ := config.GlobalDB.FetchRows(models.DB_TABLE_USER, db.DB_PARAMS{"_": strings.Join(where, " and ")}, db.DB_FIELDS{}, utils.Order(rq.Ts().Get("sort", " online desc,id desc").ToString()), utils.Limit(pdata.Get("page").ToInt(), pdata.Get("limit").ToInt()))
-	count := config.GlobalDB.GetCount(models.DB_TABLE_USER, db.DB_PARAMS{"_": strings.Join(where, " AND ")})
-	for k, v := range list {
+	whereClause := strings.Join(where, " and ")
+	list, _ := config.GlobalDB.FetchRows(
+		models.DB_TABLE_USER,
+		db.DB_PARAMS{"_": whereClause},
+		db.DB_FIELDS{},
+		utils.Order(pdata.Get("sort", " online desc,id desc").ToString()),
+		utils.Limit(pdata.Get("page").ToInt(), pdata.Get("limit").ToInt()),
+	)
+	count := config.GlobalDB.GetCount(models.DB_TABLE_USER, db.DB_PARAMS{"_": whereClause})
+	for _, v := range list {
 		uid := db.DBValue{Value: v["id"]}
 		if v["createip"] != "" {
-			createip := db.DBValue{Value: v["createip"]}
-			v["createip"] = utils.Long2Ip(createip.ToInt())
+			createIP := db.DBValue{Value: v["createip"]}
+			v["createip"] = utils.Long2Ip(createIP.ToInt())
 		}
 		if v["loginip"] != "" {
-			loginip := db.DBValue{Value: v["loginip"]}
-			v["loginip"] = utils.Long2Ip(loginip.ToInt())
+			loginIP := db.DBValue{Value: v["loginip"]}
+			v["loginip"] = utils.Long2Ip(loginIP.ToInt())
 		}
 		uinfo := models.MODEL_USER.GetBaseInfo(uid.ToInt())
 		bank, _ := config.GlobalDB.FetchRow(models.DB_TABLE_BANKINFO, db.DB_PARAMS{"uid": uid.ToInt()}, db.DB_FIELDS{})
@@ -81,11 +86,10 @@ func (m *UserModel) UserList(rq P) *AdminResponse {
 			}
 		}
 		v["parent_name"] = uinfo.ParentName
-		list[k] = v
 	}
 
 	assetList := SYSTEM_MODEL.CoinKeyValPair()
-	assetList[100] = "usdt"
+	assetList[coinTypeUSDT] = assetUSDT
 	return &AdminResponse{
 		State: SUCCESS,
 		Data: P{
@@ -105,33 +109,38 @@ func (m *UserModel) UserList(rq P) *AdminResponse {
 func (m *UserModel) UserCoinLog(rq P) *AdminResponse {
 	t := rq.Ts()
 	where := make([]string, 0)
-	if t.Get("uid").ToInt() == 0 {
-		return &AdminResponse{
-			State: ERROR,
-			Data:  "请指定一个用户!",
-		}
+	uid := t.Get("uid").ToInt()
+	if uid == 0 {
+		return &AdminResponse{State: ERROR, Data: "请指定一个用户!"}
 	}
-	where = append(where, fmt.Sprintf("uid = '%d'", t.Get("uid").ToInt()))
+	where = append(where, fmt.Sprintf("uid = '%d'", uid))
 	if v := t.Get("type").ToInt(); v > 0 {
-		where = append(where, fmt.Sprintf("type = '%d'", t.Get("type").ToInt()))
+		where = append(where, fmt.Sprintf("type = '%d'", v))
 	}
 	if v := t.Get("cointype").ToString(); v != "" {
-		where = append(where, fmt.Sprintf("cointype = '%s'", strings.ToLower(t.Get("cointype").ToString())))
+		where = append(where, fmt.Sprintf("cointype = '%s'", strings.ToLower(v)))
 	}
 	if v := t.Get("createtime").ToArray(); len(v) > 0 {
 		where = append(where, fmt.Sprintf("createtime between %d and %d", utils.TimeToint64(v[0].ToString()), utils.TimeToint64(v[1].ToString())))
 	}
 
-	list, _ := config.GlobalDB.FetchRows(models.DB_TABLE_CREDIT_LOG, db.DB_PARAMS{"_": strings.Join(where, " and ")}, db.DB_FIELDS{}, utils.Order(t.Get("order", " id desc").ToString()), utils.Limit(t.Get("page").ToInt(), t.Get("limit").ToInt()))
-	count := config.GlobalDB.GetCount(models.DB_TABLE_CREDIT_LOG, db.DB_PARAMS{"_": strings.Join(where, " and ")})
-	coinlist := SYSTEM_MODEL.CoinKeyValPair()
-	coinlist[100] = "usdt"
+	whereClause := strings.Join(where, " and ")
+	list, _ := config.GlobalDB.FetchRows(
+		models.DB_TABLE_CREDIT_LOG,
+		db.DB_PARAMS{"_": whereClause},
+		db.DB_FIELDS{},
+		utils.Order(t.Get("order", " id desc").ToString()),
+		utils.Limit(t.Get("page").ToInt(), t.Get("limit").ToInt()),
+	)
+	count := config.GlobalDB.GetCount(models.DB_TABLE_CREDIT_LOG, db.DB_PARAMS{"_": whereClause})
+	coinList := SYSTEM_MODEL.CoinKeyValPair()
+	coinList[coinTypeUSDT] = assetUSDT
 	return &AdminResponse{
 		State: SUCCESS,
 		Data: P{
 			"list":        list,
 			"count":       count,
-			"coinlist":    coinlist,
+			"coinlist":    coinList,
 			"change_type": SYSTEM_MODEL.COINLOG_TYPELIST(),
 		},
 	}
@@ -139,81 +148,70 @@ func (m *UserModel) UserCoinLog(rq P) *AdminResponse {
 
 func (m *UserModel) AdjustUserCredit(rq P) *AdminResponse {
 	t := rq.Ts()
-	assetname := strings.ToLower(t.Get("assetname").ToString())
-	if assetname == "" {
-		return &AdminResponse{
-			State: SUCCESS,
-			Data:  "添加失败",
-		}
+	assetName := strings.ToLower(t.Get("assetname").ToString())
+	if assetName == "" {
+		return &AdminResponse{State: SUCCESS, Data: "添加失败"}
 	}
 
-	if v := t.Get("id").ToInt(); v > 0 {
+	if uid := t.Get("id").ToInt(); uid > 0 {
 		coin := t.Get("coin").ToFloat()
-		ntime := utils.GetNow()
-		if assetname != "usdt" {
-			pair := fmt.Sprintf("%susdt", assetname)
+		now := utils.GetNow()
+		if assetName != assetUSDT {
+			pair := fmt.Sprintf("%s%s", assetName, assetUSDT)
 			coinPriceInfo := models.MODEL_SYSTEM.GetLastCoinInfo(pair)
-			price := 0.0
+			var price float64
 			if coinPriceInfo == nil {
-				coininfo := models.MODEL_SYSTEM.GetCoinInfo(assetname, pair)
-				price = utils.GetFloat(coininfo["f_price"])
+				coinInfo := models.MODEL_SYSTEM.GetCoinInfo(assetName, pair)
+				price = utils.GetFloat(coinInfo["f_price"])
 			} else {
 				price = coinPriceInfo["close"].(float64)
 			}
-			if models.MODEL_ASSETS.AddAssets(t.Get("id").ToInt(), &models.Assets{
-				Coin:    assetname,
+			if models.MODEL_ASSETS.AddAssets(uid, &models.Assets{
+				Coin:    assetName,
 				Pair:    pair,
 				Num:     coin,
 				LockNum: 0,
 				Price:   price,
 				Mode:    1,
 			}) {
-				models.MODEL_USER.AddCredit(t.Get("id").ToInt(), &models.CreditValue{
+				models.MODEL_USER.AddCredit(uid, &models.CreditValue{
 					UserCoinLogType: models.COIN_LOG_BACKEND,
 					UserCoinLogInfo: models.QueueCreditLog{
 						Credit:     coin,
-						CoinType:   assetname,
-						CreateTime: ntime,
+						CoinType:   assetName,
+						CreateTime: now,
 					},
 				})
 			}
 		} else {
-			models.MODEL_USER.AddCredit(v, &models.CreditValue{
+			models.MODEL_USER.AddCredit(uid, &models.CreditValue{
 				Credit:          coin,
 				UserCoinLogType: models.COIN_LOG_BACKEND,
 				UserCoinLogInfo: models.QueueCreditLog{
-					Credit:     t.Get("coin").ToFloat(),
-					CoinType:   assetname,
-					CreateTime: ntime,
+					Credit:     coin,
+					CoinType:   assetName,
+					CreateTime: now,
 				},
 				TeamCoinLogType: models.TEAM_LOG_RECHARGE,
 				TeamCoinLogInfo: models.QueueTeamLog{
 					Recharge:   coin,
-					CreateTime: ntime,
+					CreateTime: now,
 				},
 			})
 		}
 	}
 
-	return &AdminResponse{
-		State: SUCCESS,
-		Data:  "修改成功",
-	}
+	return &AdminResponse{State: SUCCESS, Data: "修改成功"}
 }
 
 func (m *UserModel) UserControllerExp(rq P) *AdminResponse {
 	t := rq.Ts()
-	if t.Get("id").ToInt() == 0 {
-		return &AdminResponse{
-			State: ERROR,
-			Data:  "需要指定一个控制的用户",
-		}
+	id := t.Get("id").ToInt()
+	if id == 0 {
+		return &AdminResponse{State: ERROR, Data: "需要指定一个控制的用户"}
 	}
-	models.MODEL_USER.Update(t.Get("id").ToInt(), db.DB_PARAMS{"explode_state": t.Get("explode_state").ToInt()})
-	return &AdminResponse{
-		State: SUCCESS,
-		Data:  "修改设置成功!",
-	}
+	models.MODEL_USER.Update(id, db.DB_PARAMS{"explode_state": t.Get("explode_state").ToInt()})
+	return &AdminResponse{State: SUCCESS, Data: "修改设置成功!"}
 }
 
 func (m *UserModel) SaveUser(rq P) *AdminResponse {
@@ -225,8 +223,9 @@ func (m *UserModel) SaveUser(rq P) *AdminResponse {
 	if v := t.Get("nickname").ToString(); v != "" {
 		up["nickname"] = v
 	}
-	if v := t.Get("avatar").ToString(); v != "" {
-		up["avatar"] = v
+	avatar := t.Get("avatar").ToString()
+	if avatar != "" {
+		up["avatar"] = avatar
 	}
 	if v := t.Get("password").ToString(); v != "" {
 		up["password"] = utils.Md5(fmt.Sprintf("%s%s", models.PASSMIX, v))
@@ -258,15 +257,7 @@ func (m *UserModel) SaveUser(rq P) *AdminResponse {
 	if v := t.Get("email").ToString(); v != "" {
 		up["email"] = v
 	}
-	if v := t.Get("memo").ToString(); v != "" {
-		up["memo"] = v
-	}
-	if v := t.Get("memo").ToString(); v == "" {
-		up["memo"] = ""
-	}
-	if v := t.Get("avatar").ToString(); v != "" {
-		up["avatar"] = v
-	}
+	up["memo"] = t.Get("memo").ToString()
 	if v := t.Get("withdraw_msg").ToString(); v != "" {
 		up["withdraw_msg"] = v
 	}
@@ -292,7 +283,7 @@ func (m *UserModel) SaveUser(rq P) *AdminResponse {
 	}
 
 	rs := new(AdminResponse)
-	if t.Get("avatar").ToString() == "" {
+	if avatar == "" {
 		up["avatar"] = SYSTEM_MODEL.SettingGet("avatar").ToString()
 	}
 	inviteCode := t.Get("invite_code").ToString()
@@ -310,15 +301,10 @@ func (m *UserModel) SaveUser(rq P) *AdminResponse {
 		rs.Data = "用户名不能为空!"
 		return rs
 	}
-	if len(up) == 0 {
-		rs.State = ERROR
-		rs.Data = "请输入一个要操作的用户信息!"
-	}
 
-	var err error
 	var uid int
 	up["username"] = username
-	if v := t.Get("id").ToInt(); v == 0 {
+	if id := t.Get("id").ToInt(); id == 0 {
 		if inviteCode == "" {
 			inviteCode = models.MODEL_USER.GetInvateCode()
 		}
@@ -337,7 +323,7 @@ func (m *UserModel) SaveUser(rq P) *AdminResponse {
 		}
 		uid = int(lastID)
 	} else {
-		user := models.MODEL_USER.GetBaseInfo(t.Get("id").ToInt())
+		user := models.MODEL_USER.GetBaseInfo(id)
 		if user == nil {
 			rs.State = ERROR
 			rs.Data = "该用户不存在!"
@@ -350,9 +336,8 @@ func (m *UserModel) SaveUser(rq P) *AdminResponse {
 				return rs
 			}
 		}
-		aa := (*db.DB_PARAMS)(unsafe.Pointer(&up))
-		models.MODEL_USER.Update(t.Get("id").ToInt(), *aa)
-		uid = t.Get("id").ToInt()
+		models.MODEL_USER.Update(id, db.DB_PARAMS(up))
+		uid = id
 	}
 
 	if len(bank) > 0 {
@@ -362,8 +347,8 @@ func (m *UserModel) SaveUser(rq P) *AdminResponse {
 		}
 	}
 
-	toptype := t.Get("type").ToInt()
-	if toptype == 3 {
+	topType := t.Get("type").ToInt()
+	if topType == 3 {
 		models.MODEL_USER.Update(uid, db.DB_PARAMS{"parent_order": "", "parent_uid": 0})
 		config.GlobalDB.Delete(models.DB_TABLE_USER_LEVEL, db.DB_PARAMS{"uid": uid})
 		rs.State = SUCCESS
@@ -371,30 +356,25 @@ func (m *UserModel) SaveUser(rq P) *AdminResponse {
 		return rs
 	}
 	if v := t.Get("parent_code").ToString(); v != "" {
-		var topid int
-		if toptype == 1 {
-			topid = models.MODEL_USER.GetInviteUser(v)
+		var topID int
+		if topType == 1 {
+			topID = models.MODEL_USER.GetInviteUser(v)
 		}
-		if toptype == 2 {
-			topid = t.Get("parent_code").ToInt()
+		if topType == 2 {
+			topID = t.Get("parent_code").ToInt()
 		}
-		if topid == uid {
+		if topID == uid {
 			rs.State = ERROR
 			rs.Data = "自己不能成為自己的上級\n推薦人邀請碼/ID錯誤!"
 			return rs
 		}
-		if topid > 0 {
-			m.UpTopInfo(uid, topid)
+		if topID > 0 {
+			m.UpTopInfo(uid, topID)
 		} else {
 			rs.State = ERROR
 			rs.Data = "推荐人邀请码不存在\n 错误!"
 			return rs
 		}
-	}
-	if err != nil {
-		rs.State = ERROR
-		rs.Data = "操作用户信息错误!"
-		return rs
 	}
 	rs.State = SUCCESS
 	rs.Data = "操作用户信息成功!"
@@ -420,82 +400,78 @@ func (m *UserModel) UpdateUserBankInfo(uid int, bank map[string]interface{}) boo
 	return true
 }
 
-func (m *UserModel) UpTopInfo(uid int, topid int) {
-	top := models.MODEL_USER.GetBaseInfo(topid)
+func (m *UserModel) UpTopInfo(uid int, topID int) {
+	top := models.MODEL_USER.GetBaseInfo(topID)
 	if top == nil {
 		return
 	}
 
 	var order string
 	if top.ParentOrder != "" && top.ParentOrder != "0" {
-		order = fmt.Sprintf("%d,%d", top.Id, topid)
+		order = fmt.Sprintf("%d,%d", top.Id, topID)
 	} else {
-		order = fmt.Sprintf("%d", topid)
+		order = fmt.Sprintf("%d", topID)
 	}
 
-	tmp := strings.Split(order, ",")
-	if len(tmp) > 3 {
-		tmp = tmp[len(tmp)-3:]
+	parentChain := strings.Split(order, ",")
+	if len(parentChain) > 3 {
+		parentChain = parentChain[len(parentChain)-3:]
 	}
 
-	r := db.DB_PARAMS{"parent_order": strings.Join(tmp, ","), "parent_uid": topid}
+	params := db.DB_PARAMS{"parent_order": strings.Join(parentChain, ","), "parent_uid": topID}
 	if top.ChaneelId != "0" && top.ChaneelId != "" {
 		topChannel := models.MODEL_USER.GetBaseInfo(utils.GetInt(top.ChaneelId))
 		if topChannel != nil {
-			r["channel_id"] = top.ChaneelId
-			r["channel_username"] = topChannel.Email
-			r["channel_level"] = top.Level + 1
+			params["channel_id"] = top.ChaneelId
+			params["channel_username"] = topChannel.Email
+			params["channel_level"] = top.Level + 1
 		}
 	} else if top.IsAgent == 1 {
-		r["channel_id"] = top.Id
-		r["channel_username"] = top.Email
-		r["channel_level"] = 1
+		params["channel_id"] = top.Id
+		params["channel_username"] = top.Email
+		params["channel_level"] = 1
 	}
 
-	models.MODEL_USER.Update(uid, r)
+	models.MODEL_USER.Update(uid, params)
 	config.GlobalDB.Delete(models.DB_TABLE_USER_LEVEL, db.DB_PARAMS{"uid": uid})
-	j := 1
 	levelOrder := make([]string, 0)
-	for l := len(tmp) - 1; l >= 0; l-- {
-		levelOrder = append(levelOrder, tmp[l])
+	level := 1
+	for i := len(parentChain) - 1; i >= 0; i-- {
+		levelOrder = append(levelOrder, parentChain[i])
 		config.GlobalDB.InsertData(models.DB_TABLE_USER_LEVEL, db.DB_PARAMS{
-			"puid":        tmp[l],
+			"puid":        parentChain[i],
 			"uid":         uid,
-			"level":       j,
+			"level":       level,
 			"levle_order": strings.Join(levelOrder, ","),
 		})
-		j++
+		level++
 	}
 }
 
 func (m *UserModel) UserAssetByDirect(uid int) P {
-	assetlist, _ := config.GlobalDB.FetchAll(models.DB_TABLE_USERASSETS, db.DB_PARAMS{"uid": uid}, db.DB_FIELDS{})
-	p := make(P)
-	for _, asset := range assetlist {
-		p[asset.Get("coin_symbol").ToString()] = asset.Get("coin_symbol").ToFloat()
+	assetList, _ := config.GlobalDB.FetchAll(models.DB_TABLE_USERASSETS, db.DB_PARAMS{"uid": uid}, db.DB_FIELDS{})
+	result := make(P)
+	for _, asset := range assetList {
+		result[asset.Get("coin_symbol").ToString()] = asset.Get("num").ToFloat()
 	}
-	return p
+	return result
 }
 
 func (m *UserModel) UpdateUserAssetWallet(rq P) *AdminResponse {
 	t := rq.Ts()
-	if v := t.Get("id").ToInt(); v == 0 {
-		return &AdminResponse{
-			State: ERROR,
-			Data:  "请指定一个要修改的信息",
-		}
+	id := t.Get("id").ToInt()
+	if id == 0 {
+		return &AdminResponse{State: ERROR, Data: "请指定一个要修改的信息"}
 	}
-	_, err := config.GlobalDB.UpdateData(models.DB_TABLE_USERASSETS, db.DB_PARAMS{"is_trans": t.Get("is_trans").ToString(), "wallet_address": t.Get("wallet_address").ToString()}, db.DB_PARAMS{"id": t.Get("id").ToInt()})
+	_, err := config.GlobalDB.UpdateData(
+		models.DB_TABLE_USERASSETS,
+		db.DB_PARAMS{"is_trans": t.Get("is_trans").ToString(), "wallet_address": t.Get("wallet_address").ToString()},
+		db.DB_PARAMS{"id": id},
+	)
 	if err != nil {
-		return &AdminResponse{
-			State: ERROR,
-			Data:  "修改用户钱包信息失败!",
-		}
+		return &AdminResponse{State: ERROR, Data: "修改用户钱包信息失败!"}
 	}
-	return &AdminResponse{
-		State: SUCCESS,
-		Data:  "修改用户钱包信息成功",
-	}
+	return &AdminResponse{State: SUCCESS, Data: "修改用户钱包信息成功"}
 }
 
 func (m *UserModel) UserAssetList(rq P) *AdminResponse {
@@ -511,18 +487,32 @@ func (m *UserModel) UserAssetList(rq P) *AdminResponse {
 		where = append(where, fmt.Sprintf("c.is_trans = '%s'", v))
 	}
 
-	list, _ := config.GlobalDB.JoinTable(models.DB_TABLE_USERASSETS+" as c", models.DB_TABLE_USER+" as u ", " c.uid = u.id", db.DB_PARAMS{"_": strings.Join(where, " AND ")}, db.DB_FIELDS{"u.username", "u.memo", "c.*"}, utils.Order(t.Get("sort", " c.id desc").ToString()), utils.Limit(t.Get("page").ToInt(), t.Get("limit").ToInt()))
-	count := config.GlobalDB.JoinCount(models.DB_TABLE_USERASSETS+" as c", models.DB_TABLE_USER+" as u ", " c.uid = u.id", db.DB_PARAMS{"_": strings.Join(where, " AND ")})
-	rs := make([]map[string]interface{}, 0)
+	whereClause := strings.Join(where, " AND ")
+	list, _ := config.GlobalDB.JoinTable(
+		models.DB_TABLE_USERASSETS+" as c",
+		models.DB_TABLE_USER+" as u ",
+		" c.uid = u.id",
+		db.DB_PARAMS{"_": whereClause},
+		db.DB_FIELDS{"u.username", "u.memo", "c.*"},
+		utils.Order(t.Get("sort", " c.id desc").ToString()),
+		utils.Limit(t.Get("page").ToInt(), t.Get("limit").ToInt()),
+	)
+	count := config.GlobalDB.JoinCount(
+		models.DB_TABLE_USERASSETS+" as c",
+		models.DB_TABLE_USER+" as u ",
+		" c.uid = u.id",
+		db.DB_PARAMS{"_": whereClause},
+	)
+	result := make([]map[string]interface{}, 0)
 	for _, item := range list {
 		i := make(map[string]interface{}, 0)
 		item.SetInterface(&i)
-		rs = append(rs, i)
+		result = append(result, i)
 	}
 	return &AdminResponse{
 		State: SUCCESS,
 		Data: P{
-			"list":  rs,
+			"list":  result,
 			"count": count,
 			"coin":  SYSTEM_MODEL.CoinKeyValPair(),
 		},
@@ -548,48 +538,62 @@ func (m *UserModel) UserTeamLevelCount(rq P) *AdminResponse {
 	t := rq.Ts()
 	uid := t.Get("uid").ToInt()
 	if uid == 0 {
-		return &AdminResponse{
-			State: ERROR,
-			Data:  "请指定一个查看的用户",
-		}
+		return &AdminResponse{State: ERROR, Data: "请指定一个查看的用户"}
 	}
 
 	where := make([]string, 0)
-	subWhere := ""
+	subConds := []string{
+		"u.id = ul.uid",
+		fmt.Sprintf("ul.puid = %d", uid),
+	}
 	if v := t.Get("level").ToInt(); v > 0 {
-		subWhere = fmt.Sprintf("  and ul.level = %d", v)
+		subConds = append(subConds, fmt.Sprintf("ul.level = %d", v))
 	}
 	if v := t.Get("email").ToString(); v != "" {
-		subWhere += fmt.Sprintf("  and u.username like '%%%s%%'", v)
+		subConds = append(subConds, fmt.Sprintf("u.username like '%%%s%%'", v))
 	}
-	count := config.GlobalDB.GetCount("`users` AS u , `user_levels` AS ul", db.DB_PARAMS{"_": "u.id =ul.uid and ul.puid=" + t.Get("uid").ToString() + " " + subWhere})
+	subWhere := strings.Join(subConds, " and ")
+	count := config.GlobalDB.GetCount(
+		"`users` AS u , `user_levels` AS ul",
+		db.DB_PARAMS{"_": subWhere},
+	)
 	if v := t.Get("createtime").ToArray(); len(v) > 0 {
 		where = append(where, fmt.Sprintf("uc.daytime between %d and %d", utils.TimeToint64(v[0].ToString()), utils.TimeToint64(v[1].ToString())))
 	}
 
-	list, _ := config.GlobalDB.JoinTable("(SELECT u.id,u.username,u.memo, u.createtime,ul.level FROM `users` AS u , `user_levels` AS ul WHERE u.id =ul.uid and ul.puid="+t.Get("uid").ToString()+" "+subWhere+" ) AS ut", "`user_count` AS uc", "uc.uid = ut.id", db.DB_PARAMS{"_": strings.Join(where, " AND ")}, db.DB_FIELDS{
-		"ANY_VALUE(ut.id) as id",
-		"ANY_VALUE(ut.username) username",
-		"ANY_VALUE(ut.createtime) createtime",
-		"ANY_VALUE(ut.level) level", "SUM(uc.recharge) as recharge, SUM(uc.withdraw) as withdraw, SUM(uc.trade) as trade, SUM(uc.trade_profit) trade_profit, SUM(uc.mining_count) mining_count, SUM(uc.mining_profit) mining_profit",
-	}, " group by ut.id")
+	subQuery := "(SELECT u.id,u.username,u.memo, u.createtime,ul.level FROM `users` AS u , `user_levels` AS ul WHERE " + subWhere + " ) AS ut"
+	list, _ := config.GlobalDB.JoinTable(
+		subQuery,
+		"`user_count` AS uc",
+		"uc.uid = ut.id",
+		db.DB_PARAMS{"_": strings.Join(where, " AND ")},
+		db.DB_FIELDS{
+			"ANY_VALUE(ut.id) as id",
+			"ANY_VALUE(ut.username) username",
+			"ANY_VALUE(ut.createtime) createtime",
+			"ANY_VALUE(ut.level) level",
+			"SUM(uc.recharge) as recharge, SUM(uc.withdraw) as withdraw, SUM(uc.trade) as trade, " +
+				"SUM(uc.trade_profit) trade_profit, SUM(uc.mining_count) mining_count, SUM(uc.mining_profit) mining_profit",
+		},
+		" group by ut.id",
+	)
 
-	l := make([]db.DB_PARAMS, 0)
+	result := make([]db.DB_PARAMS, 0)
 	for _, item := range list {
 		it := make(map[string]interface{}, 0)
 		item.SetInterface(&it)
-		l = append(l, it)
+		result = append(result, it)
 	}
 
 	total := SYSTEM_MODEL.UserLevelListCount(rq)
-	tss := make(map[string]interface{})
-	total.SetInterface(&tss)
+	totalMap := make(map[string]interface{})
+	total.SetInterface(&totalMap)
 	return &AdminResponse{
 		State: SUCCESS,
 		Data: P{
-			"list":  l,
+			"list":  result,
 			"count": count,
-			"total": tss,
+			"total": totalMap,
 		},
 	}
 }
@@ -600,36 +604,53 @@ func (m *UserModel) GetUserAssetOverview(uid int) *AdminResponse {
 		return &AdminResponse{State: ERROR, Data: "用户不能存在!"}
 	}
 
-	asset, _ := config.GlobalDB.FetchAll(models.DB_TABLE_USERASSETS, db.DB_PARAMS{"uid": uid}, db.DB_FIELDS{"(num+lock_num) as amount, ANY_VALUE(coin_pair) as coin_pair"})
-	minnermoney, _ := config.GlobalDB.FetchOne(models.DB_TABLE_MINING_ORDER, db.DB_PARAMS{"state": 0, "uid": uid}, db.DB_FIELDS{"SUM(amount) as amount"})
-	contract, _ := config.GlobalDB.FetchOne(models.DB_TABLE_OPENED_TRADE, db.DB_PARAMS{"uid": uid, "trade_type": "2", "clear_time": 0}, db.DB_FIELDS{"SUM(credit) as amount"})
-	explode, _ := config.GlobalDB.FetchOne(models.DB_TABLE_OPENED_TRADE, db.DB_PARAMS{"uid": uid, "trade_type": "1", "clear_time": 0}, db.DB_FIELDS{"SUM(credit) as amount"})
+	asset, _ := config.GlobalDB.FetchAll(
+		models.DB_TABLE_USERASSETS,
+		db.DB_PARAMS{"uid": uid},
+		db.DB_FIELDS{"(num+lock_num) as amount, ANY_VALUE(coin_pair) as coin_pair"},
+	)
+	minerMoney, _ := config.GlobalDB.FetchOne(
+		models.DB_TABLE_MINING_ORDER,
+		db.DB_PARAMS{"state": 0, "uid": uid},
+		db.DB_FIELDS{"SUM(amount) as amount"},
+	)
+	contract, _ := config.GlobalDB.FetchOne(
+		models.DB_TABLE_OPENED_TRADE,
+		db.DB_PARAMS{"uid": uid, "trade_type": "2", "clear_time": 0},
+		db.DB_FIELDS{"SUM(credit) as amount"},
+	)
+	explode, _ := config.GlobalDB.FetchOne(
+		models.DB_TABLE_OPENED_TRADE,
+		db.DB_PARAMS{"uid": uid, "trade_type": "1", "clear_time": 0},
+		db.DB_FIELDS{"SUM(credit) as amount"},
+	)
 
 	var assetTotal float64
 	for _, assetItem := range asset {
+		amount := assetItem.Get("amount").ToFloat()
 		itemPrice := models.MODEL_SYSTEM.GetLastCoinInfo(assetItem.Get("coin_pair").ToString())
-		if itemPrice != nil && assetItem.Get("amount").ToFloat() > 0 {
-			assetTotal += assetItem.Get("amount").ToFloat() * itemPrice["close"].(float64)
+		if itemPrice != nil && amount > 0 {
+			assetTotal += amount * itemPrice["close"].(float64)
 		}
 	}
 
 	total := P{
 		"asset":    assetTotal,
-		"minner":   minnermoney.Get("amount").ToFloat(),
+		"minner":   minerMoney.Get("amount").ToFloat(),
 		"contract": contract.Get("amount").ToFloat(),
 		"explode":  explode.Get("amount").ToFloat(),
 		"lock":     uinfo.LockCredit,
 		"valid":    uinfo.Credit,
 	}
-	rs := make([]P, 0)
-	totalMoney := 0.00
+	result := make([]P, 0)
+	var totalMoney float64
 	for key, val := range total {
-		rs = append(rs, P{"project": key, "asset": val})
+		result = append(result, P{"project": key, "asset": val})
 		totalMoney += val.(float64)
 	}
-	rs = append(rs, P{"project": "total", "asset": totalMoney})
+	result = append(result, P{"project": "total", "asset": totalMoney})
 	return &AdminResponse{State: SUCCESS, Data: P{
-		"asset": rs,
+		"asset": result,
 		"project": P{
 			"asset":    "钱包折合资产",
 			"minner":   "矿机",
