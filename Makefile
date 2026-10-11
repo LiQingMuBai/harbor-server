@@ -11,6 +11,8 @@ CDN_BIN ?= $(BIN_DIR)/$(BIN_PREFIX)-cdn
 TASK_BIN ?= $(BIN_DIR)/$(BIN_PREFIX)-task
 TASK_DATA_BIN ?= $(BIN_DIR)/$(BIN_PREFIX)-task-data
 TASK_JOBS_BIN ?= $(BIN_DIR)/$(BIN_PREFIX)-task-jobs
+MONGO_INIT_BIN ?= $(BIN_DIR)/$(BIN_PREFIX)-mongo-init
+MONGO_RECOVER_BIN ?= $(BIN_DIR)/$(BIN_PREFIX)-mongo-recover
 
 GOFLAGS ?= -trimpath
 LDFLAGS ?= -s -w
@@ -28,6 +30,8 @@ help:
 	"  make build-task       Build $(TASK_BIN)" \
 	"  make build-task-data  Build $(TASK_DATA_BIN)" \
 	"  make build-task-jobs  Build $(TASK_JOBS_BIN)" \
+	"  make build-mongo-init Build $(MONGO_INIT_BIN)" \
+	"  make build-mongo-recover Build $(MONGO_RECOVER_BIN)" \
 	"  make clean            Remove ./$(BIN_DIR)"
 
 .PHONY: build
@@ -63,6 +67,14 @@ build-task-data: $(BIN_DIR)
 .PHONY: build-task-jobs
 build-task-jobs: $(BIN_DIR)
 	$(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(TASK_JOBS_BIN) ./cmd/task-jobs
+
+.PHONY: build-mongo-init
+build-mongo-init: $(BIN_DIR)
+	$(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(MONGO_INIT_BIN) ./cmd/mongo-init
+
+.PHONY: build-mongo-recover
+build-mongo-recover: $(BIN_DIR)
+	$(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(MONGO_RECOVER_BIN) ./cmd/mongo-recover
 
 .PHONY: clean
 clean:
